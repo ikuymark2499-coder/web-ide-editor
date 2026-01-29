@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Gold Search + AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>DevStudio Gold Search + AI Fixed</title>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+        @import url('[https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap)');
         
         :root {
             --bg: #0d1117;
@@ -27,7 +27,6 @@
 
         .code-font { font-family: 'Fira Code', monospace; font-size: 15px; line-height: 1.6; }
 
-        /* Dashboard & Icons */
         .item-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -43,7 +42,6 @@
         .item-name { font-size: 11px; font-weight: 600; margin-top: 10px; color: #e6edf3; }
         .icon-svg { width: 40px; height: 40px; }
 
-        /* Editor */
         .editor-container { position: relative; flex: 1; background: #0d1117; overflow: hidden; }
         #code-input, #backdrop {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -53,10 +51,8 @@
         #backdrop { color: transparent; z-index: 1; pointer-events: none; }
         .match { background-color: var(--gold-bg); border-bottom: 2px solid var(--gold); color: transparent; }
 
-        /* Save Button State */
         #btn-save:disabled { background-color: #30363d; color: #8b949e; opacity: 0.6; cursor: not-allowed; }
 
-        /* Shaking & Delete */
         .is-shaking { animation: shake 0.2s infinite; border-color: #f85149; }
         @keyframes shake { 0% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } 100% { transform: rotate(-1deg); } }
         .btn-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #f85149; color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 10px; }
@@ -65,14 +61,13 @@
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; z-index: 5000; }
         .toast.active { transform: translateX(-50%) translateY(0); }
 
-        /* Loading Animation */
         .loader { width: 20px; height: 20px; border: 3px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- Auth UI (เหมือนเดิม) -->
+    <!-- Auth UI -->
     <div id="auth-ui" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
         <div class="w-full max-w-[300px]">
             <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic">DEVSTUDIO</h1>
@@ -157,8 +152,8 @@
                 <p class="text-[10px] text-gray-500 uppercase mt-1">Configure your new project</p>
             </div>
             <div class="space-y-3">
-                <input type="text" id="ai-folder-name" placeholder="Folder Name (e.g., MyProject)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                <input type="text" id="ai-file-name" placeholder="File Name (e.g., index.html)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <input type="text" id="ai-folder-name" placeholder="Folder Name" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <input type="text" id="ai-file-name" placeholder="File Name (e.g. index.html)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                 <button onclick="goToAIStep2()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs shadow-lg shadow-blue-600/20">NEXT STEP</button>
                 <button onclick="closeAIWizard()" class="w-full text-xs text-gray-500 font-bold py-2">CANCEL</button>
             </div>
@@ -172,10 +167,10 @@
                 <button onclick="closeAIWizard()" class="text-gray-500 text-xs">EXIT</button>
             </div>
             <div id="ai-chat-history" class="flex-1 bg-[#161b22] border border-[#30363d] rounded-2xl p-4 overflow-y-auto space-y-4 text-sm scroll-smooth">
-                <div class="text-blue-400 font-medium">AI: สวัสดีครับ! อยากให้ผมเขียนโค้ดอะไรลงในไฟล์นี้ดีครับ? บอกความต้องการมาได้เลย</div>
+                <div class="text-blue-400 font-medium">AI: อยากให้สร้างอะไรในไฟล์นี้ครับ? บอกความต้องการได้เลย</div>
             </div>
             <div class="flex gap-2">
-                <input type="text" id="ai-prompt" placeholder="เช่น: สร้างหน้า Login สวยๆ..." class="flex-1 bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <input type="text" id="ai-prompt" placeholder="Describe what you want..." class="flex-1 bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                 <button id="btn-ai-send" onclick="generateWithAI()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </button>
@@ -207,7 +202,7 @@
     <div id="toast" class="toast">NOTIFICATION</div>
 
 <script>
-    const apiKey = ""; // Canvas will provide this automatically
+    const apiKey = ""; 
     const KEY = 'ds_gold_db';
     let db = JSON.parse(localStorage.getItem(KEY)) || { users: {} };
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
@@ -225,10 +220,9 @@
     function closeAIWizard() { document.getElementById('ai-wizard').classList.replace('flex', 'hidden'); }
 
     function goToAIStep2() {
-        const folder = document.getElementById('ai-folder-name').value;
-        const file = document.getElementById('ai-file-name').value;
+        const folder = document.getElementById('ai-folder-name').value.trim();
+        const file = document.getElementById('ai-file-name').value.trim();
         if(!folder || !file) return notify("Please fill folder and file name");
-        
         document.getElementById('ai-target-file').textContent = `${folder} / ${file}`;
         document.getElementById('ai-step-1').classList.add('hidden');
         document.getElementById('ai-step-2').classList.remove('hidden');
@@ -236,14 +230,14 @@
 
     async function generateWithAI() {
         const promptInput = document.getElementById('ai-prompt');
-        const userPrompt = promptInput.value;
-        const fileName = document.getElementById('ai-file-name').value;
+        const userPrompt = promptInput.value.trim();
+        const folderName = document.getElementById('ai-folder-name').value.trim();
+        const fileName = document.getElementById('ai-file-name').value.trim();
         const chatHistory = document.getElementById('ai-chat-history');
         const sendBtn = document.getElementById('btn-ai-send');
         
         if(!userPrompt) return;
 
-        // UI Feedback
         promptInput.value = "";
         const userMsg = document.createElement('div');
         userMsg.className = "text-right text-gray-400";
@@ -260,9 +254,9 @@
         const systemPrompt = `You are a professional code generator. 
         Create code for a file named "${fileName}". 
         Return ONLY the raw code content. 
-        Do not include markdown code blocks like \`\`\`html or \`\`\`. 
-        If it's .html, include Tailwind CDN for styling.
-        If it's .jsx, use React and Tailwind classes.`;
+        IMPORTANT: Do NOT use markdown code blocks like \`\`\`html or \`\`\`. Start immediately with the code.
+        If it's .html, include Tailwind CDN (<script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>) for styling.
+        If it's a game, make it self-contained in one file.`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
@@ -275,35 +269,36 @@
             });
 
             const data = await response.json();
-            let generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || "// Failed to generate";
+            let generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text;
             
-            // Clean markdown blocks if AI ignored instructions
-            generatedCode = generatedCode.replace(/^```[a-z]*\n/i, "").replace(/\n```$/i, "");
+            if (!generatedCode) throw new Error("No code generated");
 
-            aiMsg.innerHTML = `AI: โค้ดเสร็จแล้วครับ! กำลังสร้างไฟล์และเปิดเครื่องมือแก้ไข...`;
+            // Extreme clean-up of markdown blocks
+            generatedCode = generatedCode.trim();
+            if (generatedCode.startsWith('```')) {
+                generatedCode = generatedCode.split('\n').slice(1, -1).join('\n');
+            }
+
+            aiMsg.innerHTML = `AI: โค้ดเสร็จแล้วครับ! กำลังสร้างไฟล์...`;
             
-            // Auto Create Process
+            // Execute Database Update
+            const u = db.users[session.email];
+            let fIdx = u.folders.findIndex(f => f.name === folderName);
+            if(fIdx === -1) {
+                u.folders.push({ name: folderName, files: [] });
+                fIdx = u.folders.length - 1;
+            }
+            
+            u.folders[fIdx].files.push({ name: fileName, content: generatedCode });
+            saveDB();
+            
             setTimeout(() => {
-                const folderName = document.getElementById('ai-folder-name').value;
-                const u = db.users[session.email];
-                
-                // 1. Find or Create Folder
-                let fIdx = u.folders.findIndex(f => f.name === folderName);
-                if(fIdx === -1) {
-                    u.folders.push({ name: folderName, files: [] });
-                    fIdx = u.folders.length - 1;
-                }
-                
-                // 2. Create File
-                u.folders[fIdx].files.push({ name: fileName, content: generatedCode });
-                saveDB();
-                
-                // 3. Open Editor
                 curFolder = fIdx;
                 closeAIWizard();
-                renderFiles(); // Update dash background
+                showFilesView(); // Force switch view
+                renderFiles(); 
                 openEditor(u.folders[fIdx].files.length - 1);
-            }, 1500);
+            }, 800);
 
         } catch (err) {
             aiMsg.innerHTML = `AI: Error - ขออภัยครับ ระบบขัดข้อง ลองใหม่อีกครั้ง`;
@@ -311,7 +306,13 @@
         }
     }
 
-    // --- Existing Core Logic (Auth, Dash, Editor) ---
+    // Navigation Helper
+    function showFilesView() {
+        document.getElementById('view-folders').classList.add('hidden');
+        document.getElementById('view-files').classList.remove('hidden');
+    }
+
+    // --- Core Logic ---
     function switchAuth(t) {
         document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
         document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg');
@@ -341,11 +342,15 @@
         curFolder = null;
     }
     function renderFolders() {
-        const list = document.getElementById('list-folders'); list.innerHTML = '';
+        const list = document.getElementById('list-folders'); 
+        if(!list) return;
+        list.innerHTML = '';
         db.users[session.email].folders.forEach((f, i) => list.appendChild(createItem(i, f.name, 'folder')));
     }
     function renderFiles() {
-        const list = document.getElementById('list-files'); list.innerHTML = '';
+        const list = document.getElementById('list-files');
+        if(!list) return;
+        list.innerHTML = '';
         db.users[session.email].folders[curFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file')));
     }
     function createItem(id, name, type) {
@@ -356,7 +361,7 @@
         el.onpointerup = el.onpointerleave = () => clearTimeout(shakeTimer);
         el.onclick = () => {
             if(el.classList.contains('is-shaking')) return el.classList.remove('is-shaking');
-            if(type === 'folder') { curFolder = id; document.getElementById('view-folders').classList.add('hidden'); document.getElementById('view-files').classList.remove('hidden'); renderFiles(); }
+            if(type === 'folder') { curFolder = id; showFilesView(); renderFiles(); }
             else openEditor(id);
         };
         return el;
@@ -374,7 +379,6 @@
         const input = document.getElementById('code-input');
         input.value = file.content;
         originalContent = file.content;
-        document.getElementById('find-input').value = "";
         document.getElementById('editor-ui').classList.replace('hidden', 'flex');
         checkSaveState(); applyHighlight();
     }
@@ -382,25 +386,19 @@
     function handleInput() { checkSaveState(); applyHighlight(); }
     function checkSaveState() {
         const input = document.getElementById('code-input');
-        const saveBtn = document.getElementById('btn-save');
-        saveBtn.disabled = (input.value === originalContent);
+        document.getElementById('btn-save').disabled = (input.value === originalContent);
     }
-
     function applyHighlight() {
         const input = document.getElementById('code-input');
         const backdrop = document.getElementById('backdrop');
         const find = document.getElementById('find-input').value;
-        const countEl = document.getElementById('match-count');
         let content = input.value;
         if (find) {
             const regex = new RegExp(`(${find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-            const matches = content.match(regex);
-            countEl.textContent = matches ? `${matches.length} MATCHES` : "";
             const html = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(regex, '<span class="match">$1</span>');
             backdrop.innerHTML = html + (content.endsWith('\n') ? '\n' : '');
         } else {
             backdrop.innerHTML = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + (content.endsWith('\n') ? '\n' : '');
-            countEl.textContent = "";
         }
         syncScroll();
     }
@@ -408,14 +406,12 @@
         const input = document.getElementById('code-input');
         const backdrop = document.getElementById('backdrop');
         backdrop.scrollTop = input.scrollTop;
-        backdrop.scrollLeft = input.scrollLeft;
     }
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
     function saveFile() {
-        const val = document.getElementById('code-input').value;
-        db.users[session.email].folders[curFolder].files[curFile].content = val;
-        originalContent = val;
-        saveDB(); checkSaveState(); notify("Saved successfully");
+        db.users[session.email].folders[curFolder].files[curFile].content = document.getElementById('code-input').value;
+        originalContent = document.getElementById('code-input').value;
+        saveDB(); checkSaveState(); notify("Saved");
     }
     function runProject() {
         const blob = new Blob([document.getElementById('code-input').value], {type: 'text/html'});
@@ -429,7 +425,7 @@
         document.getElementById('modal-input').value = '';
         document.getElementById('modal-ui').classList.replace('hidden', 'flex');
         document.getElementById('modal-confirm').onclick = () => {
-            const val = document.getElementById('modal-input').value; if(!val) return;
+            const val = document.getElementById('modal-input').value.trim(); if(!val) return;
             const u = db.users[session.email];
             if(type === 'folder') u.folders.push({ name: val, files: [] });
             else u.folders[curFolder].files.push({ name: val, content: '<h1>New File</h1>' });
