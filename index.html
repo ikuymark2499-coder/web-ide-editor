@@ -3,426 +3,542 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio IDE - Local DB</title>
+    <title>DevStudio Next-Gen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --bg-darker: #010409;
-            --bg-main: #0d1117;
+            --bg-root: #0e1117; /* Replit Dark */
+            --bg-sidebar: #161b22;
+            --bg-editor: #0d1117;
+            --bg-terminal: #09090b;
             --border: #30363d;
-            --gold: #ffcf40;
-            --tab-inactive: #161b22;
-            --tab-active: #0d1117;
+            --accent: #0079f2; /* Replit Blue */
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-main); 
-            color: #c9d1d9; 
-            margin: 0; 
-            height: 100vh; 
-            overflow: hidden;
-        }
-
-        .code-font { font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.6; }
-
-        /* Tabs System */
-        .tabs-wrapper {
-            display: flex;
-            align-items: center;
-            background: var(--bg-darker);
-            border-bottom: 1px solid var(--border);
-            height: 40px;
-        }
-
-        .tabs-container {
-            display: flex;
-            flex: 1;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-        .tabs-container::-webkit-scrollbar { display: none; }
-
-        .tab {
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            background: var(--tab-inactive);
-            border-right: 1px solid var(--border);
-            color: #8b949e;
-            font-size: 12px;
-            cursor: pointer;
-            min-width: 100px;
-            max-width: 200px;
-            height: 100%;
-            position: relative;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .tab.active {
-            background: var(--bg-main);
-            color: #58a6ff;
-            border-top: 2px solid #58a6ff;
-            font-weight: 600;
-        }
-        .tab-close {
-            margin-left: 8px;
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 10px;
-            opacity: 0.6;
-        }
-        .tab-close:hover { background: rgba(248, 81, 73, 0.2); color: #f85149; opacity: 1; }
-
-        .add-file-btn {
-            width: 40px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-darker);
-            color: #8b949e;
-            cursor: pointer;
-            border-left: 1px solid var(--border);
-        }
-
-        /* Editor */
-        .editor-area { flex: 1; position: relative; overflow: hidden; background: var(--bg-main); }
-        #code-input, #backdrop {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            padding: 20px; box-sizing: border-box; white-space: pre; overflow: auto;
-            border: none; outline: none; background: transparent;
-        }
-        #code-input { color: #e6edf3; z-index: 2; caret-color: var(--gold); resize: none; }
-        #backdrop { color: transparent; z-index: 1; pointer-events: none; }
-
-        .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: 0.2s; color: #8b949e; }
-        .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; }
-
-        .preview-overlay {
-            position: fixed; top: 48px; right: -100%; width: 100%; height: calc(100% - 48px);
-            background: #fff; z-index: 1000; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-        }
-        .preview-overlay.open { right: 0; }
-
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: bold; z-index: 10000; transition: 0.3s; opacity: 0; pointer-events: none; }
-        .toast.show { opacity: 1; bottom: 40px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-root); color: var(--text-main); margin: 0; height: 100vh; overflow: hidden; }
         
-        /* Dashboard Grid */
-        .repl-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            padding: 20px;
-            border-radius: 16px;
-            transition: all 0.2s;
-            cursor: pointer;
-            position: relative;
+        /* Layout Grid */
+        .ide-grid {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            grid-template-rows: 48px 1fr 180px; /* Header | Editor | Terminal */
+            height: 100vh;
+            transition: 0.3s ease;
         }
-        .repl-card:hover { border-color: #58a6ff; transform: translateY(-2px); }
+        .ide-grid.sidebar-collapsed { grid-template-columns: 0px 1fr; }
+        .ide-grid.terminal-collapsed { grid-template-rows: 48px 1fr 32px; }
+
+        /* Areas */
+        .header { grid-column: 1 / -1; grid-row: 1; background: var(--bg-sidebar); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; px-4; z-index: 20; }
+        .sidebar { grid-column: 1; grid-row: 2 / -1; background: var(--bg-sidebar); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+        .main-editor { grid-column: 2; grid-row: 2; background: var(--bg-editor); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        .terminal { grid-column: 2; grid-row: 3; background: var(--bg-terminal); border-top: 1px solid var(--border); display: flex; flex-direction: column; }
+
+        /* Code Editor Tech */
+        .code-area { flex: 1; position: relative; overflow: hidden; display: flex; }
+        .line-numbers {
+            width: 40px;
+            background: var(--bg-editor);
+            color: #484f58;
+            text-align: right;
+            padding: 20px 8px 20px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            user-select: none;
+            border-right: 1px solid #21262d;
+        }
+        .editor-wrapper { position: relative; flex: 1; overflow: auto; }
+        
+        #code-input, #syntax-highlight {
+            position: absolute; top: 0; left: 0;
+            width: 100%; min-height: 100%;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            border: none; outline: none;
+            white-space: pre;
+            tab-size: 2;
+        }
+        #code-input { color: transparent; background: transparent; caret-color: white; z-index: 2; resize: none; overflow: hidden; }
+        #syntax-highlight { color: #e6edf3; z-index: 1; pointer-events: none; }
+
+        /* Syntax Colors */
+        .tok-tag { color: #7ee787; }
+        .tok-attr { color: #79c0ff; }
+        .tok-str { color: #a5d6ff; }
+        .tok-comment { color: #8b949e; font-style: italic; }
+        .tok-keyword { color: #ff7b72; }
+
+        /* Tabs */
+        .tabs-bar { display: flex; background: #010409; overflow-x: auto; height: 36px; }
+        .tab { 
+            padding: 0 16px; display: flex; align-items: center; gap: 8px; 
+            font-size: 12px; color: var(--text-muted); cursor: pointer; border-right: 1px solid var(--border);
+            border-top: 2px solid transparent; transition: 0.1s;
+        }
+        .tab:hover { background: #161b22; color: white; }
+        .tab.active { background: var(--bg-editor); color: white; border-top-color: var(--accent); }
+
+        /* Preview Split */
+        .split-view { display: flex; height: 100%; width: 100%; }
+        .split-editor { flex: 1; position: relative; display: flex; flex-direction: column; transition: 0.3s; }
+        .split-preview { width: 0; transition: 0.3s; background: white; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .split-view.open .split-preview { width: 50%; }
+        
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .ide-grid { grid-template-columns: 1fr; grid-template-rows: 48px 1fr; }
+            .sidebar { display: none; position: absolute; z-index: 50; height: calc(100% - 48px); bottom: 0; width: 80%; }
+            .sidebar.mobile-open { display: flex; }
+            .terminal { display: none; } /* Hide terminal on mobile to save space */
+            .split-view.open .split-editor { display: none; }
+            .split-view.open .split-preview { width: 100%; }
+        }
+
+        /* Utility */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 5px; border: 2px solid var(--bg-root); }
+        .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--text-muted); transition: 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; }
+        .btn-primary { background: var(--accent); color: white; font-weight: 600; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+        .btn-primary:hover { opacity: 0.9; }
+        
+        .loader { width: 14px; height: 14px; border: 2px solid white; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- Nav -->
-    <nav class="h-12 bg-[#010409] border-b border-[#30363d] flex items-center justify-between px-4 z-[1100]">
-        <div class="flex items-center gap-4">
-            <button onclick="backToDashboard()" class="text-gray-400 hover:text-white flex items-center gap-2">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-                <span class="text-xs font-bold uppercase tracking-widest hidden sm:inline">HOME</span>
-            </button>
-            <div class="h-4 w-[1px] bg-gray-800"></div>
-            <span id="current-project-display" class="text-xs font-bold text-blue-500 uppercase tracking-widest truncate max-w-[120px]">SELECT PROJECT</span>
-        </div>
-        
-        <div class="flex items-center gap-2">
-            <span id="save-status" class="text-[10px] text-gray-500 italic mr-2">Local Mode</span>
-            <button onclick="exportData()" class="btn-icon" title="Backup (JSON)"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
-            <button onclick="togglePreview()" class="btn-icon" title="Preview"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
-        </div>
-    </nav>
+    <div class="ide-grid" id="main-layout">
+        <!-- HEADER -->
+        <header class="header px-4">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white lg:hidden">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold text-white">DS</div>
+                    <span class="font-bold text-sm hidden sm:block" id="project-title">My Project</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="saveProject()" id="btn-save" class="text-xs text-gray-400 hover:text-white px-3 py-1.5 border border-transparent hover:border-[#30363d] rounded transition-all">
+                    <span id="save-indicator">Saved</span>
+                </button>
+                <button onclick="toggleRun()" class="btn-primary flex items-center gap-2">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Run
+                </button>
+                <button onclick="openAI()" class="bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold px-3 py-1.5 rounded-md text-xs flex items-center gap-1 shadow-lg hover:brightness-110 transition-all">
+                    ✨ AI
+                </button>
+            </div>
+        </header>
 
-    <!-- Workspace -->
-    <div id="workspace-ui" class="flex flex-col h-[calc(100vh-48px)] hidden">
-        <div class="tabs-wrapper">
-            <div id="tabs-bar" class="tabs-container"></div>
-            <div class="add-file-btn" onclick="triggerCreateFile()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div>
-        </div>
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="p-3 border-b border-[#30363d] flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-500 uppercase">Explorer</span>
+                <div class="flex gap-1">
+                    <button onclick="createNewFile()" class="p-1 hover:text-white text-gray-500" title="New File">+</button>
+                    <button onclick="exportProject()" class="p-1 hover:text-white text-gray-500" title="Download">↓</button>
+                </div>
+            </div>
+            <div id="file-list" class="flex-1 overflow-y-auto py-2"></div>
+            <div class="p-3 border-t border-[#30363d] mt-auto">
+                <button onclick="openDashboard()" class="w-full text-left text-xs text-gray-400 hover:text-white py-2 flex items-center gap-2">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Back to Dashboard
+                </button>
+            </div>
+        </aside>
 
-        <div class="p-2 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117] h-10">
-            <div class="text-[10px] text-gray-500 font-mono tracking-tighter" id="file-path">./index.html</div>
-            <button id="btn-save" onclick="saveCurrentFile()" class="px-6 py-1 bg-blue-600 hover:bg-blue-500 rounded text-[10px] font-bold text-white transition-all disabled:opacity-20" disabled>SAVE</button>
-        </div>
+        <!-- MAIN EDITOR AREA (SPLIT VIEW) -->
+        <section class="main-editor">
+            <div class="split-view" id="split-view">
+                <!-- Editor Side -->
+                <div class="split-editor">
+                    <div class="tabs-bar" id="tabs-bar"></div>
+                    <div class="code-area">
+                        <div class="line-numbers" id="line-numbers">1</div>
+                        <div class="editor-wrapper" onscroll="syncScroll()">
+                            <div id="syntax-highlight"></div>
+                            <textarea id="code-input" spellcheck="false" oninput="handleInput()" onkeydown="handleTab(event)"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <!-- Preview Side -->
+                <div class="split-preview">
+                    <div class="h-8 bg-[#f3f4f6] border-b flex items-center justify-between px-2">
+                        <span class="text-[10px] text-gray-500 font-mono">localhost:3000 (Simulated)</span>
+                        <div class="flex gap-2">
+                            <button onclick="refreshPreview()" class="text-gray-500 hover:text-black">↻</button>
+                            <button onclick="toggleRun()" class="text-gray-500 hover:text-black">✕</button>
+                        </div>
+                    </div>
+                    <iframe id="preview-frame" class="flex-1 w-full border-none"></iframe>
+                </div>
+            </div>
+        </section>
 
-        <main class="editor-area">
-            <div id="backdrop" class="code-font text-[#c9d1d9]"></div>
-            <textarea id="code-input" class="code-font" spellcheck="false" oninput="onCodeChange()" onscroll="syncScroll()"></textarea>
-        </main>
+        <!-- TERMINAL -->
+        <section class="terminal">
+            <div class="h-8 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-3 cursor-pointer" onclick="toggleTerminal()">
+                <span class="text-xs font-bold text-gray-400">Console / Terminal</span>
+                <span class="text-xs text-gray-600">^</span>
+            </div>
+            <div id="console-output" class="flex-1 p-2 font-mono text-xs text-gray-300 overflow-y-auto space-y-1">
+                <div class="text-blue-400">> DevStudio Environment Ready...</div>
+            </div>
+        </section>
     </div>
 
-    <!-- Dashboard -->
-    <div id="dashboard-ui" class="fixed inset-0 z-40 bg-[#0d1117] flex flex-col items-center p-8 overflow-y-auto">
+    <!-- DASHBOARD OVERLAY -->
+    <div id="dashboard" class="fixed inset-0 z-50 bg-[#0e1117] flex flex-col items-center p-8 overflow-auto">
         <div class="w-full max-w-4xl">
             <div class="flex justify-between items-center mb-8 border-b border-[#30363d] pb-6">
-                <h1 class="text-2xl font-black text-white italic">MY LOCAL REPLS</h1>
-                <div class="flex gap-2">
-                    <button onclick="triggerImport()" class="bg-[#21262d] text-gray-300 px-4 py-2 rounded-xl text-xs font-bold border border-[#30363d] hover:bg-[#30363d]">IMPORT</button>
-                    <button onclick="triggerCreateRepl()" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-lg shadow-blue-900/50">+ NEW</button>
+                <h1 class="text-2xl font-bold text-white">Your Projects</h1>
+                <div class="flex gap-3">
+                    <button onclick="importProject()" class="text-xs font-bold text-gray-400 hover:text-white border border-[#30363d] px-4 py-2 rounded-lg">Import JSON</button>
+                    <button onclick="createNewProject()" class="text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500">+ New Repl</button>
                 </div>
             </div>
-            <div id="repl-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="project-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </div>
     </div>
 
-    <!-- Hidden Input for Import -->
-    <input type="file" id="import-input" class="hidden" accept=".json" onchange="handleImport(event)">
-
-    <!-- Preview Overlay -->
-    <div id="preview-overlay" class="preview-overlay">
-        <iframe id="preview-frame" class="w-full h-full border-none bg-white"></iframe>
-        <button onclick="togglePreview()" class="absolute top-4 right-4 bg-red-600 text-white w-8 h-8 rounded-full shadow-xl">✕</button>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal-ui" class="fixed inset-0 z-[6000] bg-black/90 hidden items-center justify-center p-6 backdrop-blur-md">
-        <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-2xl w-full max-w-[300px]">
-            <p id="modal-title" class="text-[10px] font-bold text-blue-500 uppercase mb-4 text-center"></p>
-            <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm mb-4">
-            <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-1 text-[10px] font-bold text-gray-500 uppercase">Cancel</button>
-                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold text-[10px] uppercase">Confirm</button>
+    <!-- AI WIZARD -->
+    <div id="ai-modal" class="fixed inset-0 z-[60] bg-black/80 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#161b22] border border-[#30363d] w-full max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-[#30363d] flex justify-between items-center">
+                <span class="text-sm font-bold text-amber-400">AI Assistant</span>
+                <button onclick="closeAI()" class="text-gray-500 hover:text-white">✕</button>
+            </div>
+            <div id="ai-chat" class="flex-1 p-4 overflow-y-auto space-y-3 bg-[#0d1117]"></div>
+            <div class="p-3 border-t border-[#30363d] flex gap-2">
+                <input type="text" id="ai-prompt" class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 text-sm text-white outline-none" placeholder="Ask AI to write code...">
+                <button onclick="sendAI()" class="bg-blue-600 text-white px-4 rounded-lg text-xs font-bold">SEND</button>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="toast">Done!</div>
+    <input type="file" id="file-upload" class="hidden" onchange="handleFileImport(event)">
 
 <script>
-    // --- IndexedDB Manager ---
-    const DB_NAME = 'DevStudioDB';
-    const DB_VERSION = 1;
-    let dbInstance = null;
-    let projects = [];
-    let curIdx = null;
-    let activeFileIdx = null;
-    let lastSavedContent = "";
+    // --- DATABASE ---
+    const DB_NAME = 'DevStudioNext';
+    let db, currentProject = null, activeFileIndex = 0;
+    
+    // Init IndexedDB
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = e => {
+        e.target.result.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+    };
+    request.onsuccess = e => {
+        db = e.target.result;
+        loadProjects();
+    };
 
-    // 1. Start DB
-    function initDB() {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('projects')) {
-                db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
-            }
-        };
-        request.onsuccess = (e) => {
-            dbInstance = e.target.result;
-            loadProjects();
-        };
-    }
-
-    // 2. Load Projects from DB
+    // --- DASHBOARD LOGIC ---
     function loadProjects() {
-        const store = dbInstance.transaction('projects', 'readonly').objectStore('projects');
+        const tx = db.transaction('projects', 'readonly');
+        const store = tx.objectStore('projects');
         const req = store.getAll();
         req.onsuccess = () => {
-            projects = req.result;
-            renderDashboard();
+            const list = document.getElementById('project-list');
+            list.innerHTML = '';
+            if (req.result.length === 0) list.innerHTML = '<div class="text-gray-600 col-span-3 text-center py-10">No projects yet. Create one!</div>';
+            req.result.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-[#161b22] border border-[#30363d] p-5 rounded-xl hover:border-blue-500 cursor-pointer group relative";
+                card.innerHTML = `
+                    <div class="font-bold text-white mb-1">${p.name}</div>
+                    <div class="text-xs text-gray-500">${p.files.length} files • Last edit: ${new Date(p.lastEdit).toLocaleDateString()}</div>
+                    <button onclick="deleteProject(event, ${p.id})" class="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100">✕</button>
+                `;
+                card.onclick = () => openProject(p.id);
+                list.appendChild(card);
+            });
         };
     }
 
-    // 3. Save Project to DB
-    function saveProjectToDB(project, callback) {
-        const tx = dbInstance.transaction('projects', 'readwrite');
-        const store = tx.objectStore('projects');
-        const req = store.put(project);
-        req.onsuccess = () => {
-            if (callback) callback();
-            loadProjects();
+    function createNewProject() {
+        const name = prompt("Project Name:", "Untitled Repl");
+        if (!name) return;
+        const project = {
+            name,
+            lastEdit: Date.now(),
+            files: [{ name: 'index.html', content: '<h1>Hello World</h1>' }]
         };
-    }
-
-    function renderDashboard() {
-        const list = document.getElementById('repl-list');
-        list.innerHTML = '';
-        projects.forEach((p, i) => {
-            const el = document.createElement('div');
-            el.className = 'repl-card group';
-            el.innerHTML = `
-                <div class="text-[9px] font-black text-gray-500 mb-2">PROJECT ID: ${p.id}</div>
-                <div class="text-lg font-bold text-white mb-4">${p.name}</div>
-                <div class="flex justify-between items-center text-[10px] text-gray-500">
-                    <span>${p.files.length} Files</span>
-                    <button onclick="deleteProject(event, ${p.id})" class="text-red-500 opacity-0 group-hover:opacity-100">DELETE</button>
-                </div>
-            `;
-            el.onclick = () => openProject(i);
-            list.appendChild(el);
-        });
-    }
-
-    function triggerCreateRepl() {
-        openModal("Create Project", "My Awesome Site", (name) => {
-            const newProj = {
-                name,
-                files: [{ name: 'index.html', content: '<h1>Hello Local World!</h1>' }],
-                updated: Date.now()
-            };
-            saveProjectToDB(newProj);
-        });
+        const tx = db.transaction('projects', 'readwrite');
+        tx.objectStore('projects').add(project);
+        tx.oncomplete = () => loadProjects();
     }
 
     function deleteProject(e, id) {
         e.stopPropagation();
-        if(!confirm("Are you sure? This cannot be undone.")) return;
-        const tx = dbInstance.transaction('projects', 'readwrite');
+        if(!confirm("Delete this project?")) return;
+        const tx = db.transaction('projects', 'readwrite');
         tx.objectStore('projects').delete(id);
         tx.oncomplete = () => loadProjects();
     }
 
-    // --- Editor Actions ---
-    function openProject(idx) {
-        curIdx = idx;
-        const p = projects[idx];
-        document.getElementById('current-project-display').textContent = p.name;
-        document.getElementById('dashboard-ui').classList.add('hidden');
-        document.getElementById('workspace-ui').classList.remove('hidden');
-        selectFile(0);
+    function openProject(id) {
+        const tx = db.transaction('projects', 'readonly');
+        const req = tx.objectStore('projects').get(id);
+        req.onsuccess = () => {
+            currentProject = req.result;
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('project-title').textContent = currentProject.name;
+            renderFiles();
+            openFile(0);
+            logConsole("Project loaded: " + currentProject.name);
+        };
     }
 
-    function selectFile(idx) {
-        activeFileIdx = idx;
-        const file = projects[curIdx].files[idx];
-        document.getElementById('code-input').value = file.content;
-        document.getElementById('file-path').textContent = `./${file.name}`;
-        lastSavedContent = file.content;
-        onCodeChange();
+    function openDashboard() {
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadProjects();
+    }
+
+    // --- EDITOR LOGIC ---
+    function renderFiles() {
+        const list = document.getElementById('file-list');
+        list.innerHTML = '';
+        currentProject.files.forEach((f, i) => {
+            const el = document.createElement('div');
+            el.className = `px-4 py-2 text-xs cursor-pointer hover:bg-[#21262d] flex justify-between group ${activeFileIndex === i ? 'bg-[#21262d] text-white border-l-2 border-blue-500' : 'text-gray-400'}`;
+            el.innerHTML = `<span>${f.name}</span> <span onclick="deleteFile(event, ${i})" class="hidden group-hover:inline text-gray-500 hover:text-red-400">×</span>`;
+            el.onclick = () => openFile(i);
+            list.appendChild(el);
+        });
         renderTabs();
     }
 
     function renderTabs() {
         const bar = document.getElementById('tabs-bar');
         bar.innerHTML = '';
-        projects[curIdx].files.forEach((f, i) => {
+        currentProject.files.forEach((f, i) => {
             const tab = document.createElement('div');
-            tab.className = `tab ${activeFileIdx === i ? 'active' : ''}`;
-            tab.innerHTML = `<span onclick="selectFile(${i})">${f.name}</span> <span class="tab-close" onclick="deleteFile(event, ${i})">×</span>`;
+            tab.className = `tab ${activeFileIndex === i ? 'active' : ''}`;
+            tab.textContent = f.name;
+            tab.onclick = () => openFile(i);
             bar.appendChild(tab);
         });
     }
 
-    function triggerCreateFile() {
-        openModal("New File", "script.js", (name) => {
-            projects[curIdx].files.push({ name, content: '// New File' });
-            saveProjectToDB(projects[curIdx]);
-            selectFile(projects[curIdx].files.length - 1);
-        });
+    function openFile(index) {
+        if (!currentProject.files[index]) return;
+        activeFileIndex = index;
+        const file = currentProject.files[index];
+        const input = document.getElementById('code-input');
+        input.value = file.content;
+        renderFiles();
+        updateLineNumbers();
+        highlightSyntax();
     }
 
-    function deleteFile(e, idx) {
+    function createNewFile() {
+        const name = prompt("File Name (e.g. style.css):");
+        if (!name) return;
+        currentProject.files.push({ name, content: '' });
+        saveProject();
+        renderFiles();
+        openFile(currentProject.files.length - 1);
+    }
+
+    function deleteFile(e, index) {
         e.stopPropagation();
-        if(projects[curIdx].files.length <= 1) return;
-        projects[curIdx].files.splice(idx, 1);
-        if(activeFileIdx >= idx) activeFileIdx = Math.max(0, activeFileIdx - 1);
-        saveProjectToDB(projects[curIdx]);
-        selectFile(activeFileIdx);
+        if(currentProject.files.length <= 1) return alert("Cannot delete last file");
+        if(!confirm("Delete file?")) return;
+        currentProject.files.splice(index, 1);
+        if(activeFileIndex >= index) activeFileIndex = Math.max(0, activeFileIndex - 1);
+        saveProject();
+        renderFiles();
+        openFile(activeFileIndex);
     }
 
-    function saveCurrentFile() {
-        const code = document.getElementById('code-input').value;
-        projects[curIdx].files[activeFileIdx].content = code;
-        lastSavedContent = code;
-        saveProjectToDB(projects[curIdx], () => {
-            showToast("Saved to Browser DB");
-            onCodeChange();
-        });
+    function handleInput() {
+        const content = document.getElementById('code-input').value;
+        currentProject.files[activeFileIndex].content = content;
+        document.getElementById('save-indicator').textContent = "Unsaved*";
+        document.getElementById('save-indicator').classList.add('text-yellow-500');
+        updateLineNumbers();
+        highlightSyntax();
     }
 
-    // --- Export / Import (Free Backup) ---
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "devstudio_backup.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-        showToast("Backup Downloaded!");
-    }
-
-    function triggerImport() { document.getElementById('import-input').click(); }
-    
-    function handleImport(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const imported = JSON.parse(event.target.result);
-                // Simple merge
-                imported.forEach(proj => {
-                    delete proj.id; // Let DB generate new IDs
-                    saveProjectToDB(proj);
-                });
-                showToast("Imported Successfully!");
-            } catch(err) { showToast("Error: Invalid JSON"); }
-        };
-        reader.readAsText(file);
-    }
-
-    // --- UI Logic ---
-    function onCodeChange() {
-        const code = document.getElementById('code-input').value;
-        const isChanged = code !== lastSavedContent;
-        document.getElementById('btn-save').disabled = !isChanged;
-        document.getElementById('save-status').textContent = isChanged ? "Unsaved Changes" : "Local DB Sync OK";
-        document.getElementById('backdrop').textContent = code;
-    }
-
-    function syncScroll() { 
-        const editor = document.getElementById('code-input');
-        const backdrop = document.getElementById('backdrop');
-        backdrop.scrollTop = editor.scrollTop; 
-        backdrop.scrollLeft = editor.scrollLeft; 
-    }
-
-    function togglePreview() {
-        const overlay = document.getElementById('preview-overlay');
-        const frame = document.getElementById('preview-frame');
-        const isOpen = overlay.classList.toggle('open');
-        if(isOpen) {
-            const htmlFile = projects[curIdx].files.find(f => f.name.endsWith('.html')) || projects[curIdx].files[0];
-            const blob = new Blob([htmlFile.content], {type: 'text/html'});
-            frame.src = URL.createObjectURL(blob);
+    function handleTab(e) {
+        if(e.key === 'Tab') {
+            e.preventDefault();
+            document.execCommand('insertText', false, '  ');
         }
     }
 
-    function backToDashboard() {
-        document.getElementById('workspace-ui').classList.add('hidden');
-        document.getElementById('dashboard-ui').classList.remove('hidden');
+    function saveProject() {
+        if(!currentProject) return;
+        currentProject.lastEdit = Date.now();
+        const tx = db.transaction('projects', 'readwrite');
+        tx.objectStore('projects').put(currentProject);
+        document.getElementById('save-indicator').textContent = "Saved";
+        document.getElementById('save-indicator').classList.remove('text-yellow-500');
+        
+        // Auto refresh preview if open
+        if(document.getElementById('split-view').classList.contains('open')) {
+            refreshPreview();
+        }
     }
 
-    function openModal(t, p, c) {
-        document.getElementById('modal-title').textContent = t;
-        document.getElementById('modal-input').placeholder = p;
-        document.getElementById('modal-ui').classList.replace('hidden', 'flex');
-        document.getElementById('modal-confirm').onclick = () => {
-            const val = document.getElementById('modal-input').value;
-            if(val) { c(val); closeModal(); }
+    // --- SYNTAX HIGHLIGHTING (Lite Version) ---
+    function highlightSyntax() {
+        const code = document.getElementById('code-input').value;
+        const display = document.getElementById('syntax-highlight');
+        
+        // Simple HTML/JS Highlighting regex
+        let formatted = code
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/(&lt;\/?)(\w+)(.*?)(&gt;)/g, '<span class="tok-tag">$1$2</span>$3<span class="tok-tag">$4</span>')
+            .replace(/(".*?")/g, '<span class="tok-str">$1</span>')
+            .replace(/\b(function|const|let|var|if|else|return|class)\b/g, '<span class="tok-keyword">$1</span>');
+
+        display.innerHTML = formatted;
+        syncScroll();
+    }
+
+    function updateLineNumbers() {
+        const lines = document.getElementById('code-input').value.split('\n').length;
+        document.getElementById('line-numbers').innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+    }
+
+    function syncScroll() {
+        const input = document.getElementById('code-input');
+        document.getElementById('syntax-highlight').scrollTop = input.scrollTop;
+        document.getElementById('syntax-highlight').scrollLeft = input.scrollLeft;
+        document.getElementById('line-numbers').scrollTop = input.scrollTop;
+    }
+
+    // --- PREVIEW & CONSOLE ---
+    function toggleRun() {
+        const split = document.getElementById('split-view');
+        split.classList.toggle('open');
+        if (split.classList.contains('open')) refreshPreview();
+    }
+
+    function refreshPreview() {
+        const frame = document.getElementById('preview-frame');
+        const htmlFile = currentProject.files.find(f => f.name.endsWith('.html')) || currentProject.files[0];
+        
+        // Inject Console Capture Script
+        const consoleScript = `<script>
+            (function(){
+                const oldLog = console.log;
+                console.log = function(...args){
+                    window.parent.postMessage({type: 'log', content: args.join(' ')}, '*');
+                    oldLog.apply(console, args);
+                };
+                window.onerror = function(msg){
+                    window.parent.postMessage({type: 'error', content: msg}, '*');
+                }
+            })();
+        <\/script>`;
+
+        // Combine CSS/JS if needed (Basic implementation just runs HTML)
+        const finalContent = htmlFile.content.replace('<head>', '<head>' + consoleScript);
+        
+        frame.srcdoc = finalContent;
+        logConsole("Preview refreshed.");
+    }
+
+    function toggleTerminal() {
+        document.getElementById('main-layout').classList.toggle('terminal-collapsed');
+    }
+
+    function logConsole(msg, type='info') {
+        const consoleEl = document.getElementById('console-output');
+        const line = document.createElement('div');
+        line.className = type === 'error' ? 'text-red-400' : 'text-gray-300';
+        line.textContent = `> ${msg}`;
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    window.addEventListener('message', (e) => {
+        if(e.data.type === 'log') logConsole(e.data.content);
+        if(e.data.type === 'error') logConsole(e.data.content, 'error');
+    });
+
+    // --- UI HELPERS ---
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); }
+    
+    // --- AI Logic (User Key) ---
+    function openAI() { document.getElementById('ai-modal').classList.remove('hidden'); }
+    function closeAI() { document.getElementById('ai-modal').classList.add('hidden'); }
+    
+    async function sendAI() {
+        const prompt = document.getElementById('ai-prompt').value;
+        const chat = document.getElementById('ai-chat');
+        const apiKey = localStorage.getItem('user_api_key') || prompt("Enter Gemini API Key:");
+        
+        if(!apiKey) return;
+        localStorage.setItem('user_api_key', apiKey);
+
+        chat.innerHTML += `<div class="text-right text-blue-400 text-xs mb-2">${prompt}</div>`;
+        document.getElementById('ai-prompt').value = "";
+
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: "Write code for: " + prompt }] }] })
+            });
+            const data = await res.json();
+            const code = data.candidates[0].content.parts[0].text.replace(/```[a-z]*\n/gi, '').replace(/\n```/g, '').trim();
+            
+            chat.innerHTML += `<div class="text-left text-green-400 text-xs mb-2">Code generated. Check editor.</div>`;
+            
+            // Auto insert code
+            currentProject.files.push({ name: 'ai_generated.html', content: code });
+            saveProject();
+            renderFiles();
+            openFile(currentProject.files.length - 1);
+            closeAI();
+        } catch(e) {
+            chat.innerHTML += `<div class="text-left text-red-400 text-xs mb-2">Error: ${e.message}</div>`;
+        }
+    }
+
+    // --- Import/Export ---
+    function exportProject() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentProject));
+        const a = document.createElement('a');
+        a.href = dataStr; a.download = currentProject.name + ".json";
+        a.click();
+    }
+    
+    function importProject() { document.getElementById('file-upload').click(); }
+    function handleFileImport(e) {
+        const reader = new FileReader();
+        reader.onload = event => {
+            const proj = JSON.parse(event.target.result);
+            delete proj.id; 
+            const tx = db.transaction('projects', 'readwrite');
+            tx.objectStore('projects').add(proj);
+            tx.oncomplete = () => loadProjects();
         };
+        reader.readAsText(e.target.files[0]);
     }
-    function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); document.getElementById('modal-input').value=''; }
-    function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 
-    // Start
-    initDB();
+    // Shortcut
+    document.addEventListener('keydown', e => {
+        if((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            saveProject();
+        }
+    });
+
 </script>
 </body>
-            </html>
+    </html>
