@@ -15,7 +15,7 @@
             --accent: #2f81f7;
             --danger: #f85149;
             --code-bg: #0d1117;
-            --highlight: rgba(255, 255, 0, 0.25);
+            --highlight: rgba(255, 255, 0, 0.2);
             --line-height: 1.6;
         }
 
@@ -23,9 +23,9 @@
             font-family: 'Inter', sans-serif; 
             background-color: var(--bg); 
             color: #c9d1d9; 
-            overflow: hidden;
-            height: 100vh;
             margin: 0;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .code-font { 
@@ -33,9 +33,9 @@
             font-size: 13px; 
             line-height: var(--line-height); 
             tab-size: 4;
-            -moz-tab-size: 4;
         }
 
+        /* --- UI Components --- */
         .app-header {
             height: 48px;
             background: var(--surface);
@@ -44,6 +44,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            z-index: 100;
         }
 
         .item-card {
@@ -52,61 +53,29 @@
             border-radius: 8px;
             padding: 12px 8px;
             text-align: center;
-            transition: all 0.2s;
-            cursor: pointer;
             position: relative;
-            user-select: none;
-            touch-action: none;
+            transition: transform 0.2s;
         }
 
-        .item-card:hover { border-color: #8b949e; }
+        .item-card.is-shaking { animation: shake 0.2s infinite; border-color: var(--danger); }
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-1deg); }
+            75% { transform: rotate(1deg); }
+            100% { transform: rotate(0deg); }
+        }
 
         .btn-delete-direct {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 20px;
-            height: 20px;
-            background: var(--danger);
-            color: white;
-            border-radius: 4px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            z-index: 50;
+            position: absolute; top: -5px; right: -5px;
+            width: 22px; height: 22px;
+            background: var(--danger); color: white;
+            border-radius: 50%; display: none;
+            align-items: center; justify-content: center;
+            font-size: 12px; z-index: 10;
         }
+        .is-shaking .btn-delete-direct { display: flex; }
 
-        .item-card.is-shaking {
-            animation: shake 0.2s infinite;
-            border-color: var(--danger);
-        }
-
-        .item-card.is-shaking .btn-delete-direct { display: flex; }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-1px, 0px) rotate(-1deg); }
-            40% { transform: translate(-1px, -1px) rotate(1deg); }
-            60% { transform: translate(1px, 1px) rotate(0deg); }
-            100% { transform: translate(1px, -1px) rotate(-1deg); }
-        }
-
-        .main-content {
-            height: calc(100vh - 48px);
-            overflow-y: auto;
-            padding: 16px;
-        }
-
-        .input-compact {
-            background: #0d1117;
-            border: 1px solid var(--border);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-
+        /* --- Editor Core --- */
         #editor-wrapper {
             position: relative;
             flex: 1;
@@ -116,7 +85,7 @@
         }
 
         #ln-container {
-            width: 50px;
+            width: 45px;
             background: #0d1117;
             border-right: 1px solid var(--border);
             color: #484f58;
@@ -124,11 +93,6 @@
             padding: 16px 8px;
             user-select: none;
             overflow: hidden;
-        }
-
-        #ln-container div {
-            height: calc(13px * var(--line-height));
-            font-size: 12px;
         }
 
         .editor-content-area {
@@ -139,408 +103,348 @@
 
         #code-display, #edit-area {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 16px;
-            margin: 0;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            padding: 16px; margin: 0;
             border: none;
             white-space: pre;
-            word-wrap: normal;
             overflow: auto;
             background: transparent;
             box-sizing: border-box;
             outline: none;
         }
 
-        /* ช่องพิมพ์ต้องโปร่งใสเพื่อโชว์เลเยอร์ล่าง */
         #edit-area {
             color: transparent;
             caret-color: #fff;
             z-index: 3;
             resize: none;
-            -webkit-text-fill-color: transparent; /* For Safari */
+            -webkit-text-fill-color: transparent;
         }
 
-        /* เลเยอร์วาดสี */
-        #code-display {
-            z-index: 1;
-            pointer-events: none;
-            color: #d1d5db;
-        }
+        #code-display { z-index: 1; pointer-events: none; }
 
-        /* CSS สำหรับ Syntax Coloring */
-        .token-tag { color: #7ee787; font-weight: 500; } 
-        .token-attr { color: #d2a8ff; } 
-        .token-string { color: #a5d6ff; } 
+        /* --- Syntax Colors --- */
+        .token-tag { color: #7ee787; }
+        .token-attr { color: #d2a8ff; }
+        .token-string { color: #a5d6ff; }
         .token-comment { color: #8b949e; font-style: italic; }
         .token-bracket { color: #89ddff; }
-        .token-keyword { color: #ff7b72; }
-        .token-search-match { background: var(--highlight); color: #fff; border-radius: 2px; box-shadow: 0 0 0 1px #e3b341; }
+        .token-match { background: var(--highlight); border-radius: 2px; }
 
+        /* --- Search Bar --- */
         #search-box {
-            position: absolute;
-            top: 10px;
-            right: 25px;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 2px 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        #search-input {
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 11px;
-            padding: 4px;
-            width: 120px;
-            outline: none;
-        }
-        #search-status {
-            font-size: 9px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-left: 5px;
+            position: absolute; top: 10px; right: 20px;
+            z-index: 100; display: flex; align-items: center;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 4px 12px;
         }
 
-        .btn-save { transition: all 0.2s; }
-        .btn-save:disabled {
-            background: #21262d;
-            color: #484f58;
-            cursor: not-allowed;
-            border: 1px solid var(--border);
-        }
-
-        #toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
+        /* --- Utility --- */
+        .toast {
+            position: fixed; bottom: 20px; left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: #f0f6fc;
-            color: #161b22;
-            padding: 6px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            z-index: 9999;
-            transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            background: white; color: black;
+            padding: 8px 20px; border-radius: 50px;
+            font-size: 12px; font-weight: bold;
+            transition: 0.3s; z-index: 2000;
         }
-        #toast.active { transform: translateX(-50%) translateY(0); }
+        .toast.active { transform: translateX(-50%) translateY(0); }
+
     </style>
 </head>
 <body>
 
-    <!-- Auth Panel -->
-    <div id="auth-panel" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-4">
-        <div class="w-full max-w-[320px] space-y-6">
-            <div class="text-center">
-                <h1 class="text-2xl font-bold text-blue-500 tracking-tight">DEVSTUDIO</h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Compact Workspace</p>
-            </div>
-            <div class="bg-[#161b22] border border-[#30363d] p-5 rounded-lg space-y-4">
-                <div id="login-box" class="space-y-3">
-                    <input type="email" id="l-email" placeholder="Email" class="input-compact w-full outline-none">
-                    <input type="password" id="l-pass" placeholder="Password" class="input-compact w-full outline-none">
-                    <button onclick="authAction('login')" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-md font-bold text-sm transition-all text-white">SIGN IN</button>
-                    <p class="text-center text-[11px] text-gray-400">New? <span onclick="toggleAuth('reg')" class="text-blue-400 cursor-pointer">Register</span></p>
+    <!-- Auth -->
+    <div id="auth-panel" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
+        <div class="w-full max-w-[300px] text-center">
+            <h1 class="text-2xl font-bold text-blue-500 mb-6">DEVSTUDIO</h1>
+            <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-2xl shadow-xl">
+                <div id="login-box" class="space-y-4">
+                    <input type="email" id="l-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-lg outline-none text-sm">
+                    <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-lg outline-none text-sm">
+                    <button onclick="authAction('login')" class="w-full bg-blue-600 py-3 rounded-lg font-bold text-sm text-white">SIGN IN</button>
+                    <p class="text-[11px] text-gray-500">New here? <span onclick="toggleAuth('reg')" class="text-blue-400 cursor-pointer underline">Register</span></p>
                 </div>
-                <div id="reg-box" class="space-y-3 hidden">
-                    <input type="text" id="r-name" placeholder="Name" class="input-compact w-full outline-none">
-                    <input type="email" id="r-email" placeholder="Email" class="input-compact w-full outline-none">
-                    <input type="password" id="r-pass" placeholder="Password" class="input-compact w-full outline-none">
-                    <button onclick="authAction('reg')" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-md font-bold text-sm transition-all text-white">CREATE & ENTER</button>
-                    <p class="text-center text-[11px] text-gray-400">Back? <span onclick="toggleAuth('login')" class="text-blue-400 cursor-pointer">Login</span></p>
+                <div id="reg-box" class="space-y-4 hidden">
+                    <input type="text" id="r-name" placeholder="Name" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-lg outline-none text-sm">
+                    <input type="email" id="r-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-lg outline-none text-sm">
+                    <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-lg outline-none text-sm">
+                    <button onclick="authAction('reg')" class="w-full bg-blue-600 py-3 rounded-lg font-bold text-sm text-white">CREATE ACCOUNT</button>
+                    <p class="text-[11px] text-gray-500">Already have account? <span onclick="toggleAuth('login')" class="text-blue-400 cursor-pointer underline">Login</span></p>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Main Dashboard -->
     <header class="app-header">
-        <div class="flex items-center gap-3">
-            <span class="text-blue-500 font-bold text-sm">DEVSTUDIO</span>
-            <button onclick="goHome()" class="text-gray-400 hover:text-white p-1">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            </button>
-        </div>
+        <span class="text-blue-500 font-bold text-sm">DEVSTUDIO</span>
         <div class="flex items-center gap-4">
-            <span id="u-display" class="text-[11px] font-semibold text-gray-400"></span>
-            <button onclick="logout()" class="text-[10px] text-red-400 font-bold uppercase hover:underline">Logout</button>
+            <span id="u-display" class="text-[11px] text-gray-400 hidden sm:inline"></span>
+            <button onclick="logout()" class="text-[10px] text-red-400 font-bold uppercase">Logout</button>
         </div>
     </header>
 
-    <main class="main-content">
-        <!-- Folders View -->
+    <main class="p-4 overflow-y-auto" style="height: calc(100vh - 48px);">
         <div id="v-folders">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Folders</h2>
-                <button onclick="openModal('folder')" class="text-[11px] bg-blue-600 px-3 py-1 rounded-md font-bold text-white">+ New</button>
+                <h2 class="text-[10px] font-bold text-gray-500 uppercase">Folders</h2>
+                <button onclick="openModal('folder')" class="text-[10px] bg-blue-600 px-3 py-1 rounded-md text-white">+ New Folder</button>
             </div>
-            <div id="g-folders" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-10 gap-3"></div>
+            <div id="g-folders" class="grid grid-cols-3 gap-3"></div>
         </div>
-        <!-- Files View -->
+
         <div id="v-files" class="hidden">
             <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-3">
-                    <button onclick="goHome()" class="text-gray-500 text-sm">←</button>
-                    <h2 id="f-title" class="text-sm font-bold text-white">Folder</h2>
-                </div>
-                <button onclick="openModal('file')" class="text-[11px] bg-emerald-600 px-3 py-1 rounded-md font-bold text-white">+ File</button>
+                <button onclick="goHome()" class="text-sm text-gray-400">← Back</button>
+                <button onclick="openModal('file')" class="text-[10px] bg-emerald-600 px-3 py-1 rounded-md text-white">+ New File</button>
             </div>
-            <div id="g-files" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-10 gap-3"></div>
+            <div id="g-files" class="grid grid-cols-3 gap-3"></div>
         </div>
     </main>
 
-    <!-- Editor UI -->
+    <!-- Fullscreen Editor -->
     <div id="editor-ui" class="fixed inset-0 z-[500] bg-[#0d1117] hidden flex-col">
-        <div class="h-10 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-            <div class="flex items-center gap-4">
-                <button onclick="closeEditor()" class="text-gray-500 hover:text-white text-xs">EXIT</button>
-                <span id="active-file" class="text-blue-400 code-font text-[11px]"></span>
+        <div class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
+            <div class="flex items-center gap-3">
+                <button onclick="closeEditor()" class="text-xs text-gray-400">EXIT</button>
+                <span id="active-file" class="text-blue-400 text-[11px] font-mono"></span>
             </div>
             <div class="flex gap-2">
-                <button onclick="runProject()" class="px-3 py-1 bg-emerald-600 rounded text-[10px] font-bold text-white">RUN</button>
-                <button id="btn-save-main" onclick="saveCurrent()" disabled class="btn-save px-3 py-1 bg-blue-600 rounded text-[10px] font-bold text-white">SAVE</button>
+                <button onclick="runProject()" class="px-4 py-1.5 bg-emerald-600 rounded-md text-[10px] font-bold text-white">RUN</button>
+                <button id="btn-save" onclick="saveCurrent()" disabled class="px-4 py-1.5 bg-blue-600 rounded-md text-[10px] font-bold text-white opacity-50">SAVE</button>
             </div>
         </div>
         
         <div id="editor-wrapper">
             <div id="search-box">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" id="search-input" placeholder="Find code..." oninput="updateEditor()">
-                <span id="search-status"></span>
+                <input type="text" id="search-input" placeholder="Search..." class="bg-transparent border-none text-xs outline-none text-white w-20" oninput="updateEditor()">
+                <span id="search-count" class="text-[9px] text-gray-500 ml-2"></span>
             </div>
             <div id="ln-container" class="code-font"></div>
             <div class="editor-content-area">
                 <pre id="code-display" class="code-font"></pre>
-                <textarea id="edit-area" class="code-font" spellcheck="false" oninput="handleEditorInput()" onscroll="syncEditor()"></textarea>
+                <textarea id="edit-area" class="code-font" spellcheck="false" oninput="onInput()" onscroll="syncScroll()"></textarea>
             </div>
         </div>
     </div>
 
-    <div id="preview-overlay" class="fixed inset-0 z-[1000] bg-white hidden flex-col">
-        <div class="h-10 bg-gray-100 border-b flex items-center justify-between px-4">
-            <span class="text-[10px] font-bold text-gray-500 uppercase">Live Output</span>
-            <button onclick="closePreview()" class="bg-red-500 text-white px-3 py-1 rounded text-[10px] font-bold">CLOSE</button>
+    <!-- Preview Layer -->
+    <div id="preview-overlay" class="fixed inset-0 z-[2000] bg-white hidden flex-col">
+        <div class="h-12 bg-gray-100 border-b flex items-center justify-between px-4">
+            <span class="text-xs font-bold text-gray-600">LIVE PREVIEW</span>
+            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1.5 rounded-md text-[10px] font-bold">CLOSE</button>
         </div>
         <iframe id="ifr" class="flex-1 w-full border-none"></iframe>
     </div>
 
-    <!-- Modals -->
-    <div id="mod-ui" class="fixed inset-0 z-[2000] bg-black/70 hidden items-center justify-center p-4">
-        <div class="bg-[#161b22] border border-[#30363d] p-5 rounded-lg w-full max-w-[280px]">
-            <h4 id="mod-head" class="text-[10px] font-bold text-gray-500 uppercase mb-3 text-center text-gray-400">Name</h4>
-            <input type="text" id="mod-in" class="input-compact w-full outline-none text-center mb-4 text-white">
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="closeModal()" class="text-xs text-gray-500 py-2">CANCEL</button>
-                <button id="mod-ok" class="bg-blue-600 text-white py-2 rounded-md font-bold text-xs">OK</button>
+    <!-- Modal -->
+    <div id="mod-ui" class="fixed inset-0 z-[3000] bg-black/80 hidden items-center justify-center p-6">
+        <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-2xl w-full max-w-[280px]">
+            <p id="mod-head" class="text-[10px] font-bold text-gray-500 uppercase mb-4 text-center"></p>
+            <input type="text" id="mod-in" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-lg outline-none text-white text-sm mb-4">
+            <div class="flex gap-2">
+                <button onclick="closeModal()" class="flex-1 text-xs text-gray-500">CANCEL</button>
+                <button id="mod-ok" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold text-xs">CREATE</button>
             </div>
         </div>
     </div>
 
-    <div id="toast">SYSTEM STATUS</div>
+    <div id="toast" class="toast">NOTIFIED</div>
 
 <script>
-    const K_DB = 'devcompact_db_v4';
-    const K_AUTH = 'devcompact_user_v4';
-    
-    let db = JSON.parse(localStorage.getItem(K_DB)) || { users: {} };
-    let cur = JSON.parse(localStorage.getItem(K_AUTH)) || null;
-    let fIdx = null, fiIdx = null, hT;
-    let originalContent = "";
+    const DB_KEY = 'devstudio_pro_v5';
+    let db = JSON.parse(localStorage.getItem(DB_KEY)) || { users: {} };
+    let curUser = JSON.parse(localStorage.getItem('dev_session')) || null;
+    let folderIdx = null, fileIdx = null, shakeTimeout;
+    let originalCode = "";
 
+    // Auth Logic
     function toggleAuth(t) {
         document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
         document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg');
     }
 
     function authAction(type) {
-        if (type === 'reg') {
-            const e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value;
-            if(!e || !p) return notify("Fill fields");
-            db.users[e] = { name: document.getElementById('r-name').value, email: e, pass: p, folders: [] };
-            save(); cur = db.users[e]; localStorage.setItem(K_AUTH, JSON.stringify(cur)); start();
+        if(type === 'reg') {
+            const e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, n = document.getElementById('r-name').value;
+            if(!e || !p) return showToast("Please fill all fields");
+            db.users[e] = { name: n, email: e, pass: p, folders: [] };
+            saveDB(); loginUser(db.users[e]);
         } else {
-            const e = document.getElementById('l-email').value, u = db.users[e];
-            if(u && u.pass === document.getElementById('l-pass').value) {
-                cur = u; localStorage.setItem(K_AUTH, JSON.stringify(u)); start();
-            } else notify("Login failed");
+            const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
+            const u = db.users[e];
+            if(u && u.pass === p) loginUser(u); else showToast("Invalid Credentials");
         }
     }
 
-    function logout() { localStorage.removeItem(K_AUTH); location.reload(); }
-
-    function start() {
-        if (!cur) return;
+    function loginUser(u) {
+        curUser = u; localStorage.setItem('dev_session', JSON.stringify(u));
         document.getElementById('auth-panel').style.display = 'none';
-        document.getElementById('u-display').textContent = cur.name;
-        renderF();
+        document.getElementById('u-display').textContent = u.name;
+        renderFolders();
     }
 
+    function logout() { localStorage.removeItem('dev_session'); location.reload(); }
+
+    // Navigation & Rendering
     function goHome() {
         document.getElementById('v-folders').classList.remove('hidden');
         document.getElementById('v-files').classList.add('hidden');
-        fIdx = null;
+        folderIdx = null;
     }
 
-    function renderF() {
-        const c = document.getElementById('g-folders'); c.innerHTML = '';
-        const user = db.users[cur.email];
-        if(user) user.folders.forEach((f, i) => c.appendChild(createI(i, f.name, 'folder')));
+    function renderFolders() {
+        const grid = document.getElementById('g-folders'); grid.innerHTML = '';
+        const user = db.users[curUser.email];
+        user.folders.forEach((f, i) => grid.appendChild(createItem(i, f.name, 'folder')));
     }
 
-    function renderFi() {
-        const c = document.getElementById('g-files'); c.innerHTML = '';
-        db.users[cur.email].folders[fIdx].files.forEach((f, i) => c.appendChild(createI(i, f.name, 'file')));
+    function renderFiles() {
+        const grid = document.getElementById('g-files'); grid.innerHTML = '';
+        db.users[curUser.email].folders[folderIdx].files.forEach((f, i) => grid.appendChild(createItem(i, f.name, 'file')));
     }
 
-    function createI(id, name, type) {
-        const d = document.createElement('div'); d.className = "item-card";
+    function createItem(id, name, type) {
+        const div = document.createElement('div');
+        div.className = "item-card";
         const icon = type === 'folder' 
-            ? `<svg class="w-6 h-6 text-yellow-500/80 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>`
-            : `<svg class="w-6 h-6 text-blue-400/80 mx-auto mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9l-7-7z"/></svg>`;
-        d.innerHTML = `<div class="btn-delete-direct" onclick="doDel(event, ${id}, '${type}')">✕</div>${icon}<div class="text-[9px] font-bold truncate opacity-80">${name}</div>`;
+            ? `<svg class="w-8 h-8 text-yellow-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>`
+            : `<svg class="w-8 h-8 text-blue-400 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9l-7-7z"/></svg>`;
         
-        // Handle Shake (Long Press)
-        d.onpointerdown = () => hT = setTimeout(() => d.classList.add('is-shaking'), 600);
-        d.onpointerup = d.onpointerleave = () => clearTimeout(hT);
+        div.innerHTML = `
+            <div class="btn-delete-direct" onclick="deleteItem(event, ${id}, '${type}')">✕</div>
+            ${icon}
+            <div class="text-[10px] font-bold truncate">${name}</div>
+        `;
+
+        div.onpointerdown = () => shakeTimeout = setTimeout(() => div.classList.add('is-shaking'), 600);
+        div.onpointerup = div.onpointerleave = () => clearTimeout(shakeTimeout);
         
-        d.onclick = () => {
-            if (d.classList.contains('is-shaking')) { d.classList.remove('is-shaking'); return; }
-            if (type === 'folder') { 
-                fIdx = id; 
-                document.getElementById('f-title').textContent = name; 
-                document.getElementById('v-folders').classList.add('hidden'); 
-                document.getElementById('v-files').classList.remove('hidden'); 
-                renderFi(); 
+        div.onclick = () => {
+            if(div.classList.contains('is-shaking')) return div.classList.remove('is-shaking');
+            if(type === 'folder') {
+                folderIdx = id;
+                document.getElementById('v-folders').classList.add('hidden');
+                document.getElementById('v-files').classList.remove('hidden');
+                renderFiles();
+            } else {
+                openEditor(id);
             }
-            else openEdit(id);
         };
-        return d;
+        return div;
     }
 
-    function doDel(e, id, type) {
-        e.stopPropagation(); const u = db.users[cur.email];
-        if (type === 'folder') u.folders.splice(id, 1); else u.folders[fIdx].files.splice(id, 1);
-        save(); type === 'folder' ? renderF() : renderFi(); notify("Deleted");
+    function deleteItem(e, id, type) {
+        e.stopPropagation();
+        const u = db.users[curUser.email];
+        if(type === 'folder') u.folders.splice(id, 1); else u.folders[folderIdx].files.splice(id, 1);
+        saveDB(); type === 'folder' ? renderFolders() : renderFiles();
     }
 
-    function openEdit(id) {
-        fiIdx = id; const f = db.users[cur.email].folders[fIdx].files[id];
-        originalContent = f.content;
-        document.getElementById('active-file').textContent = f.name;
-        document.getElementById('edit-area').value = f.content;
-        document.getElementById('search-input').value = '';
+    // Editor Engine
+    function openEditor(id) {
+        fileIdx = id;
+        const file = db.users[curUser.email].folders[folderIdx].files[id];
+        originalCode = file.content;
+        document.getElementById('active-file').textContent = file.name;
+        document.getElementById('edit-area').value = file.content;
         document.getElementById('editor-ui').classList.replace('hidden', 'flex');
-        checkSaveButton(); updateEditor();
+        updateEditor();
     }
 
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
-    function handleEditorInput() { checkSaveButton(); updateEditor(); }
-    function checkSaveButton() {
+
+    function onInput() {
         const current = document.getElementById('edit-area').value;
-        document.getElementById('btn-save-main').disabled = (current === originalContent);
+        const btn = document.getElementById('btn-save');
+        if(current !== originalCode) {
+            btn.disabled = false; btn.style.opacity = "1";
+        } else {
+            btn.disabled = true; btn.style.opacity = "0.5";
+        }
+        updateEditor();
     }
 
-    // --- Highlighting Engine ---
     function updateEditor() {
         const ta = document.getElementById('edit-area');
-        const display = document.getElementById('code-display');
+        const disp = document.getElementById('code-display');
         const ln = document.getElementById('ln-container');
-        const searchTerm = document.getElementById('search-input').value;
-        const status = document.getElementById('search-status');
+        const search = document.getElementById('search-input').value;
         
         let code = ta.value;
         
-        // Line Numbers
-        const lineCount = (code.endsWith('\n') ? code + ' ' : code).split('\n').length;
-        let lnHTML = "";
-        for (let i = 1; i <= lineCount; i++) lnHTML += `<div>${i}</div>`;
-        ln.innerHTML = lnHTML;
+        // Lines
+        const lines = (code.endsWith('\n') ? code + ' ' : code).split('\n');
+        ln.innerHTML = lines.map((_, i) => `<div>${i+1}</div>`).join('');
 
-        // Syntax Highlighting
-        let highlighted = code
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+        // Syntax
+        let html = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        html = html
+            .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="token-comment">$1</span>')
+            .replace(/(&lt;\/?[a-z1-6]+)/gi, '<span class="token-tag">$1</span>')
+            .replace(/(\s)([a-z-]+)(?==)/gi, '$1<span class="token-attr">$2</span>')
+            .replace(/(".*?"|'.*?')/g, '<span class="token-string">$1</span>')
+            .replace(/[{}()\[\]]/g, '<span class="token-bracket">$&</span>');
 
-        // Advanced Regex for cleaner coloring
-        highlighted = highlighted
-            .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="token-comment">$1</span>') // Comments
-            .replace(/(&lt;\/?[a-z1-6]+)(?=[^&]*&gt;|\s)/gi, '<span class="token-tag">$1</span>') // Open/Close Tags
-            .replace(/(&gt;)/g, '<span class="token-tag">$1</span>') // Closing Bracket
-            .replace(/(\s)([a-z-]+)(?==)/gi, '$1<span class="token-attr">$2</span>') // Attributes
-            .replace(/(".*?"|'.*?')/g, '<span class="token-string">$1</span>') // Strings
-            .replace(/\b(class|id|style|src|href|type|rel|name|value|onclick|oninput|onscroll)\b/g, '<span class="token-attr">$1</span>') // Keywords
-            .replace(/[{}()\[\]]/g, '<span class="token-bracket">$&</span>'); // Brackets
+        // Search Match
+        if(search) {
+            const regex = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            html = html.replace(regex, '<mark class="token-match">$1</mark>');
+        }
 
-        // Search Match (High Priority)
-        if (searchTerm) {
-            const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${safeSearch})`, 'gi');
-            const matches = code.match(regex);
-            if (matches) {
-                // We use a placeholder to avoid breaking existing HTML spans
-                highlighted = highlighted.replace(regex, '<mark class="token-search-match">$1</mark>');
-                status.textContent = `${matches.length} MATCH`; 
-                status.style.color = "#7ee787";
-            } else { 
-                status.textContent = "0 MATCH"; 
-                status.style.color = "#f85149"; 
-            }
-        } else status.textContent = "";
-
-        display.innerHTML = highlighted + (code.endsWith('\n') ? '\n' : '');
-        syncEditor();
+        disp.innerHTML = html + (code.endsWith('\n') ? '\n' : '');
+        syncScroll();
     }
 
-    function syncEditor() {
+    function syncScroll() {
         const ta = document.getElementById('edit-area');
-        const display = document.getElementById('code-display');
-        const ln = document.getElementById('ln-container');
-        display.scrollTop = ta.scrollTop;
-        display.scrollLeft = ta.scrollLeft;
-        ln.scrollTop = ta.scrollTop;
+        document.getElementById('code-display').scrollTop = ta.scrollTop;
+        document.getElementById('code-display').scrollLeft = ta.scrollLeft;
+        document.getElementById('ln-container').scrollTop = ta.scrollTop;
     }
 
     function saveCurrent() {
-        const newC = document.getElementById('edit-area').value;
-        db.users[cur.email].folders[fIdx].files[fiIdx].content = newC;
-        originalContent = newC; save(); checkSaveButton(); notify("Saved");
+        const code = document.getElementById('edit-area').value;
+        db.users[curUser.email].folders[folderIdx].files[fileIdx].content = code;
+        originalCode = code;
+        saveDB(); onInput(); showToast("File Saved!");
     }
 
     function runProject() {
-        const f = document.getElementById('ifr');
-        document.getElementById('preview-overlay').style.display = 'flex';
-        const b = new Blob([document.getElementById('edit-area').value], {type: 'text/html'});
-        f.src = URL.createObjectURL(b);
+        const code = document.getElementById('edit-area').value;
+        const blob = new Blob([code], {type: 'text/html'});
+        document.getElementById('ifr').src = URL.createObjectURL(blob);
+        document.getElementById('preview-overlay').classList.replace('hidden', 'flex');
     }
 
-    function closePreview() { document.getElementById('preview-overlay').style.display = 'none'; }
+    function closePreview() { document.getElementById('preview-overlay').classList.replace('flex', 'hidden'); }
 
-    function openModal(t) {
-        const m = document.getElementById('mod-ui'); 
-        document.getElementById('mod-head').textContent = `New ${t}`; 
+    // Modals
+    function openModal(type) {
+        document.getElementById('mod-head').textContent = `Create New ${type}`;
         document.getElementById('mod-in').value = '';
-        m.classList.replace('hidden', 'flex');
+        document.getElementById('mod-ui').classList.replace('hidden', 'flex');
         document.getElementById('mod-ok').onclick = () => {
-            const v = document.getElementById('mod-in').value; if (!v) return;
-            const u = db.users[cur.email];
-            if (t === 'folder') u.folders.push({ name: v, files: [] });
-            else u.folders[fIdx].files.push({ name: v, content: '<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { background: #0d1117; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }\n  </style>\n</head>\n<body>\n  <h1>DevStudio</h1>\n  <p>Ready to code!</p>\n</body>\n</html>' });
-            save(); t === 'folder' ? renderF() : renderFi(); closeModal();
+            const val = document.getElementById('mod-in').value;
+            if(!val) return;
+            const u = db.users[curUser.email];
+            if(type === 'folder') u.folders.push({ name: val, files: [] });
+            else u.folders[folderIdx].files.push({ name: val, content: '<!DOCTYPE html>\n<html>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>' });
+            saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal();
         };
     }
 
     function closeModal() { document.getElementById('mod-ui').classList.replace('flex', 'hidden'); }
-    function notify(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
-    function save() { localStorage.setItem(K_DB, JSON.stringify(db)); }
+    function showToast(m) { 
+        const t = document.getElementById('toast'); t.textContent = m; 
+        t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); 
+    }
+    function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 
-    start();
+    if(curUser) loginUser(curUser);
 </script>
 </body>
 </html>
