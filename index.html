@@ -32,7 +32,6 @@
             tab-size: 4;
         }
 
-        /* Editor Layout */
         .editor-container {
             position: relative;
             flex: 1;
@@ -69,7 +68,6 @@
             user-select: none;
         }
 
-        /* Gold Match Style */
         .match {
             background-color: var(--gold-bg);
             border-bottom: 2px solid var(--gold);
@@ -77,7 +75,6 @@
             border-radius: 2px;
         }
 
-        /* Search Bar UI */
         .search-area {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -97,7 +94,6 @@
             padding: 4px 12px;
         }
 
-        /* Other UI */
         .item-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -126,11 +122,19 @@
             font-size: 12px; font-weight: bold; transition: 0.3s; z-index: 5000;
         }
         .toast.active { transform: translateX(-50%) translateY(0); }
+
+        /* Save Button State */
+        #btn-save:disabled {
+            background-color: #30363d;
+            color: #8b949e;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Auth -->
+    <!-- Auth UI -->
     <div id="auth-ui" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
         <div class="w-full max-w-[300px]">
             <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic">DEVSTUDIO</h1>
@@ -152,12 +156,13 @@
         </div>
     </div>
 
-    <!-- Dashboard -->
+    <!-- Header -->
     <header class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
         <span class="text-blue-500 font-bold text-sm tracking-tighter">DS COMPACT</span>
         <button onclick="logout()" class="text-[9px] font-bold text-red-400 uppercase">Logout</button>
     </header>
 
+    <!-- Dashboard -->
     <main class="p-4" style="height: calc(100vh - 48px); overflow-y: auto;">
         <div id="view-folders">
             <div class="flex justify-between items-center mb-4">
@@ -176,7 +181,7 @@
         </div>
     </main>
 
-    <!-- Editor with Gold Highlight Search -->
+    <!-- Editor UI -->
     <div id="editor-ui" class="fixed inset-0 z-[500] bg-[#0d1117] hidden flex-col">
         <div class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
             <button onclick="closeEditor()" class="text-[10px] font-bold text-gray-500">EXIT</button>
@@ -196,11 +201,11 @@
 
         <div class="editor-container">
             <div id="backdrop" class="code-font"></div>
-            <textarea id="code-input" class="code-font" spellcheck="false" oninput="applyHighlight()" onscroll="syncScroll()"></textarea>
+            <textarea id="code-input" class="code-font" spellcheck="false" oninput="handleInput()" onscroll="syncScroll()"></textarea>
         </div>
     </div>
 
-    <!-- Runner -->
+    <!-- Runner Frame -->
     <div id="preview-ui" class="fixed inset-0 z-[2000] bg-white hidden flex-col">
         <div class="h-12 bg-gray-100 border-b flex items-center justify-between px-4">
             <span class="text-[10px] font-bold text-gray-400">LIVE PREVIEW</span>
@@ -228,8 +233,9 @@
     let db = JSON.parse(localStorage.getItem(KEY)) || { users: {} };
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
     let curFolder = null, curFile = null, shakeTimer;
+    let originalContent = "";
 
-    // Auth
+    // Auth Logic
     function switchAuth(t) {
         document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
         document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg');
@@ -253,7 +259,7 @@
     }
     function logout() { localStorage.removeItem('ds_session'); location.reload(); }
 
-    // Dashboard
+    // Dashboard Logic
     function showHome() {
         document.getElementById('view-folders').classList.remove('hidden');
         document.getElementById('view-files').classList.add('hidden');
@@ -286,14 +292,35 @@
         saveDB(); type === 'folder' ? renderFolders() : renderFiles();
     }
 
-    // Gold Highlight Logic
+    // Editor & Logic
     function openEditor(id) {
         curFile = id;
         const file = db.users[session.email].folders[curFolder].files[id];
-        document.getElementById('code-input').value = file.content;
+        const input = document.getElementById('code-input');
+        input.value = file.content;
+        originalContent = file.content; // เก็บเนื้อหาตั้งต้นไว้เช็ค
+        
         document.getElementById('find-input').value = "";
         document.getElementById('editor-ui').classList.replace('hidden', 'flex');
+        
+        checkSaveState(); // เช็คสถานะปุ่มเซฟครั้งแรก
         applyHighlight();
+    }
+
+    function handleInput() {
+        checkSaveState();
+        applyHighlight();
+    }
+
+    function checkSaveState() {
+        const input = document.getElementById('code-input');
+        const saveBtn = document.getElementById('btn-save');
+        // ปุ่มจะกดได้ (Enabled) ก็ต่อเมื่อเนื้อหาปัจจุบันไม่เหมือนกับเนื้อหาล่าสุดที่บันทึก
+        if (input.value !== originalContent) {
+            saveBtn.disabled = false;
+        } else {
+            saveBtn.disabled = true;
+        }
     }
 
     function applyHighlight() {
@@ -311,7 +338,6 @@
             countEl.textContent = matches ? `${matches.length} FOUND` : "0 FOUND";
             countEl.style.color = matches ? "var(--gold)" : "#484f58";
             
-            // Render to backdrop with gold span
             const html = content
                 .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
                 .replace(regex, '<span class="match">$1</span>');
@@ -331,10 +357,20 @@
     }
 
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
+    
     function saveFile() {
-        db.users[session.email].folders[curFolder].files[curFile].content = document.getElementById('code-input').value;
-        saveDB(); notify("File Saved!");
+        const codeInput = document.getElementById('code-input');
+        const currentContent = codeInput.value;
+        
+        // บันทึกลง DB
+        db.users[session.email].folders[curFolder].files[curFile].content = currentContent;
+        originalContent = currentContent; // อัปเดตเนื้อหาล่าสุดที่บันทึก
+        
+        saveDB();
+        checkSaveState(); // ปุ่มจะกลายเป็น Disabled ทันทีหลังเซฟ
+        notify("File Saved!");
     }
+
     function runProject() {
         const blob = new Blob([document.getElementById('code-input').value], {type: 'text/html'});
         document.getElementById('preview-frame').src = URL.createObjectURL(blob);
@@ -342,7 +378,7 @@
     }
     function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
 
-    // Modals
+    // Modal UI
     function openModal(type) {
         document.getElementById('modal-title').textContent = `New ${type}`;
         document.getElementById('modal-input').value = '';
