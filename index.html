@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio IDE - Pro Workspace</title>
+    <title>DevStudio IDE - On-Demand Preview</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -28,21 +28,22 @@
 
         .code-font { font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.6; }
 
+        /* Workspace Layout - 2 Columns now (Sidebar | Editor) */
         .workspace {
             display: grid;
-            grid-template-columns: 260px 1fr 380px;
+            grid-template-columns: 260px 1fr;
             height: calc(100vh - 40px);
+            transition: all 0.3s ease;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
             .workspace { grid-template-columns: 1fr; }
-            .sidebar, .preview-panel { display: none; }
-            .workspace.show-sidebar .sidebar { display: flex; position: absolute; z-index: 100; left: 0; top: 40px; bottom: 0; width: 280px; }
+            .sidebar { display: none; }
+            .workspace.show-sidebar .sidebar { display: flex; position: absolute; z-index: 50; left: 0; top: 40px; bottom: 0; width: 260px; }
         }
 
         .sidebar { background: var(--bg-side); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .editor-area { background: var(--bg-main); display: flex; flex-direction: column; position: relative; }
-        .preview-panel { background: #fff; border-left: 1px solid var(--border); }
 
         .file-item {
             padding: 10px 16px;
@@ -58,6 +59,7 @@
         .file-item:hover { background: rgba(255,255,255,0.05); color: #e6edf3; }
         .file-item.active { background: rgba(47, 129, 247, 0.1); color: #58a6ff; border-left-color: #58a6ff; }
 
+        /* Editor Styles */
         #code-input, #backdrop {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             padding: 20px; box-sizing: border-box; white-space: pre; overflow: auto;
@@ -65,73 +67,104 @@
         }
         #code-input { color: #e6edf3; z-index: 2; caret-color: var(--gold); resize: none; }
         #backdrop { color: transparent; z-index: 1; pointer-events: none; }
-        .match { background: rgba(255, 207, 64, 0.3); border-bottom: 2px solid var(--gold); }
 
-        .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.2s; color: #8b949e; }
+        /* Modal Preview Overlay */
+        .preview-overlay {
+            position: fixed;
+            top: 40px; right: -100%;
+            width: 100%; height: calc(100% - 40px);
+            background: #fff;
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        @media (min-width: 1024px) { .preview-overlay { width: 40%; } }
+        .preview-overlay.open { right: 0; }
+
+        .btn-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.2s; color: #8b949e; }
         .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-icon.active { color: var(--gold); background: rgba(255, 207, 64, 0.1); }
 
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: bold; z-index: 10000; transition: 0.3s; opacity: 0; pointer-events: none; }
         .toast.show { opacity: 1; bottom: 40px; }
 
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- Nav -->
-    <nav class="h-10 bg-black border-b border-[#30363d] flex items-center justify-between px-4 z-50">
+    <!-- Top Navigation Bar -->
+    <nav class="h-10 bg-black border-b border-[#30363d] flex items-center justify-between px-4 z-[1100]">
         <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="sm:hidden text-gray-400">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
             <span class="text-blue-500 font-black text-xs italic tracking-tighter">DS IDE PRO</span>
             <div class="h-4 w-[1px] bg-gray-800"></div>
-            <span id="current-project-display" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">No Project</span>
+            <span id="current-project-display" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-[100px] sm:max-w-none">No Project</span>
         </div>
-        <div class="flex items-center gap-2">
-            <button onclick="openAIWizard()" class="bg-amber-400 hover:bg-amber-300 text-black px-3 py-1 rounded-md text-[9px] font-black italic flex items-center gap-2 transition-all">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> AI ENGINE
+        <div class="flex items-center gap-1 sm:gap-3">
+            <button onclick="togglePreview()" class="btn-icon" id="preview-toggle-btn" title="Toggle Preview">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
             </button>
-            <button onclick="logout()" class="text-[9px] font-bold text-gray-500 hover:text-red-400 px-2">LOGOUT</button>
+            <div class="h-4 w-[1px] bg-gray-800 mx-1"></div>
+            <button onclick="openAIWizard()" class="bg-amber-400 hover:bg-amber-300 text-black px-2 sm:px-3 py-1 rounded-md text-[9px] font-black italic flex items-center gap-1 sm:gap-2 transition-all">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> AI
+            </button>
+            <button onclick="logout()" class="text-[9px] font-bold text-gray-500 hover:text-red-400 px-1 sm:px-2">LOGOUT</button>
         </div>
     </nav>
 
-    <!-- Workspace -->
+    <!-- Main Workspace -->
     <div id="workspace-ui" class="workspace hidden">
-        <aside class="sidebar">
+        <aside id="sidebar-el" class="sidebar">
             <div class="p-4 flex items-center justify-between border-b border-[#30363d]">
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Files</span>
-                <button onclick="triggerCreateFile()" class="btn-icon" title="New File">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Project Files</span>
+                <button onclick="triggerCreateFile()" class="btn-icon hover:rotate-90 transition-transform">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
                 </button>
             </div>
-            <div id="file-tree" class="flex-1 overflow-y-auto"></div>
+            <div id="file-tree" class="flex-1 overflow-y-auto py-2"></div>
             <div class="p-4 border-t border-[#30363d]">
-                <button onclick="backToDashboard()" class="w-full py-2 bg-[#21262d] rounded-xl text-[10px] font-bold text-gray-400 hover:text-white transition-all">CLOSE REPL</button>
+                <button onclick="backToDashboard()" class="w-full py-2 bg-[#21262d] rounded-xl text-[10px] font-bold text-gray-400 hover:text-white transition-all">DASHBOARD</button>
             </div>
         </aside>
 
         <main class="editor-area">
-            <div class="h-9 bg-black flex items-center border-b border-[#30363d] px-2 overflow-x-auto" id="tab-bar">
-                <div class="px-4 py-2 text-[10px] font-bold text-blue-400 border-b-2 border-blue-400 bg-gray-900/50" id="active-tab-name">welcome.txt</div>
-            </div>
-            <div class="p-2 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117]">
-                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Find..." class="bg-black border border-[#30363d] rounded-md px-3 py-1 text-[10px] outline-none focus:border-blue-500 w-32 sm:w-48 text-white">
-                <div class="flex gap-2">
-                    <button id="btn-save" onclick="saveCurrentFile()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-md text-[9px] font-bold text-white uppercase disabled:opacity-30 transition-all" disabled>Save</button>
+            <div class="h-9 bg-black flex items-center border-b border-[#30363d] px-2">
+                <div id="active-tab-name" class="px-4 py-2 text-[10px] font-bold text-blue-400 border-b-2 border-blue-400 bg-gray-900/50 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> select_file.html
                 </div>
             </div>
+            <div class="p-2 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117]">
+                <div class="flex items-center gap-2">
+                    <input type="text" id="search-input" placeholder="Search code..." class="bg-black border border-[#30363d] rounded-md px-3 py-1 text-[10px] outline-none focus:border-blue-500 w-32 sm:w-64 text-white">
+                </div>
+                <button id="btn-save" onclick="saveCurrentFile()" class="px-6 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-md text-[9px] font-black text-white uppercase disabled:opacity-30 transition-all" disabled>SAVE CHANGES</button>
+            </div>
             <div class="editor-container flex-1 relative">
-                <div id="backdrop" class="code-font"></div>
+                <div id="backdrop" class="code-font text-[#c9d1d9]"></div>
                 <textarea id="code-input" class="code-font" spellcheck="false" oninput="onCodeChange()" onscroll="syncScroll()"></textarea>
             </div>
         </main>
+    </div>
 
-        <section class="preview-panel flex flex-col">
-            <div class="h-9 bg-gray-100 border-b flex items-center justify-between px-4 shrink-0">
-                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Live View</span>
-                <button onclick="refreshPreview()" class="text-blue-600 hover:rotate-180 transition-all duration-500"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+    <!-- On-Demand Preview Overlay -->
+    <div id="preview-overlay" class="preview-overlay">
+        <div class="h-10 bg-gray-100 border-b flex items-center justify-between px-4">
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Live Result</span>
+                <span id="preview-status" class="text-[9px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">LIVE</span>
             </div>
-            <iframe id="preview-frame" class="w-full h-full border-none bg-white"></iframe>
-        </section>
+            <div class="flex items-center gap-2">
+                <button onclick="refreshPreview()" class="p-2 hover:bg-gray-200 rounded-lg text-gray-500"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+                <button onclick="togglePreview()" class="p-2 hover:bg-red-100 rounded-lg text-red-500"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+        </div>
+        <iframe id="preview-frame" class="w-full h-full border-none bg-white"></iframe>
     </div>
 
     <!-- Dashboard -->
@@ -139,57 +172,58 @@
         <div class="w-full max-w-5xl">
             <div class="flex flex-col sm:flex-row justify-between items-center sm:items-end gap-6 mb-12">
                 <div>
-                    <h2 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-2 text-center sm:text-left">Workspace Engine</h2>
-                    <h1 class="text-4xl font-bold text-white text-center sm:text-left">Your REPLs</h1>
+                    <h2 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-2 text-center sm:text-left">Cloud Studio</h2>
+                    <h1 class="text-4xl font-bold text-white text-center sm:text-left">My Projects</h1>
                 </div>
-                <button onclick="triggerCreateRepl()" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs shadow-2xl shadow-blue-600/30 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto">+ NEW REPL</button>
+                <button onclick="triggerCreateRepl()" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs shadow-2xl shadow-blue-600/30 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto">CREATE NEW REPL</button>
             </div>
             <div id="repl-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Common Modal -->
     <div id="modal-ui" class="fixed inset-0 z-[6000] bg-black/90 hidden items-center justify-center p-6 backdrop-blur-sm">
-        <div class="bg-[#161b22] border border-[#30363d] p-8 rounded-[32px] w-full max-w-[340px] shadow-2xl">
-            <p id="modal-title" class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4 text-center">Action Name</p>
-            <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm mb-6 focus:border-blue-500 transition-all shadow-inner" placeholder="Enter name...">
+        <div class="bg-[#161b22] border border-[#30363d] p-8 rounded-[32px] w-full max-w-[340px]">
+            <p id="modal-title" class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4 text-center"></p>
+            <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm mb-6 focus:border-blue-500 transition-all" placeholder="Enter name...">
             <div class="flex gap-3">
-                <button onclick="closeModal()" class="flex-1 text-[10px] font-bold text-gray-500 uppercase hover:text-white">Cancel</button>
-                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Confirm</button>
+                <button onclick="closeModal()" class="flex-1 text-[10px] font-bold text-gray-500 uppercase">Cancel</button>
+                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold text-[10px] uppercase transition-all">Confirm</button>
             </div>
         </div>
     </div>
 
-    <!-- AI Engine UI (Same as before but with IDE integration) -->
-    <div id="ai-wizard" class="fixed inset-0 z-[7000] bg-black/95 hidden items-center justify-center p-6 backdrop-blur-xl">
+    <!-- AI Wizard Overlay -->
+    <div id="ai-wizard" class="fixed inset-0 z-[7000] bg-black/95 hidden items-center justify-center p-6 backdrop-blur-2xl">
         <div id="ai-step-0" class="w-full max-w-[320px] text-center space-y-6">
-            <div class="w-20 h-20 bg-amber-400/10 text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 rotate-12">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <div class="w-16 h-16 bg-amber-400/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-400/30">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             </div>
-            <h2 class="text-2xl font-bold text-white italic">AI ENGINE KEY</h2>
+            <h2 class="text-xl font-bold text-white tracking-tight">AI Engine Config</h2>
             <input type="password" id="ai-key-input" placeholder="Gemini API Key..." class="w-full bg-[#161b22] border border-[#30363d] p-4 rounded-2xl text-white outline-none focus:border-amber-400">
-            <button onclick="saveAIKey()" class="w-full bg-amber-400 py-4 rounded-2xl font-black text-[10px] text-black shadow-lg shadow-amber-400/20">CONNECT ENGINE</button>
-            <button onclick="closeAIWizard()" class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Later</button>
+            <button onclick="saveAIKey()" class="w-full bg-amber-400 py-4 rounded-2xl font-black text-[10px] text-black tracking-widest uppercase">Connect Engine</button>
+            <button onclick="closeAIWizard()" class="text-gray-500 text-[9px] font-bold uppercase">Back to Code</button>
         </div>
         <div id="ai-chat-ui" class="w-full max-w-[550px] h-[80vh] flex flex-col hidden fade-in">
              <div id="ai-messages" class="flex-1 bg-[#161b22]/50 border border-[#30363d] rounded-[32px] mb-4 p-6 overflow-y-auto space-y-4"></div>
-             <div class="flex gap-2 p-3 bg-[#161b22] border border-[#30363d] rounded-3xl shadow-2xl">
-                 <input type="text" id="ai-prompt" placeholder="สั่ง AI สร้างหน้าเว็บ หรือแก้โค้ด..." class="flex-1 bg-transparent px-4 py-2 text-white outline-none text-sm">
-                 <button onclick="runAIGenerator()" class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 active:scale-90 transition-all">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                 </button>
+             <div class="flex gap-2 p-3 bg-[#161b22] border border-[#30363d] rounded-2xl">
+                 <input type="text" id="ai-prompt" placeholder="เช่น สร้าง Dashboard สำหรับร้านอาหาร..." class="flex-1 bg-transparent px-4 py-2 text-white outline-none text-sm">
+                 <button onclick="runAIGenerator()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
              </div>
         </div>
     </div>
 
-    <!-- Auth -->
+    <!-- Authentication UI -->
     <div id="auth-ui" class="fixed inset-0 z-[9000] bg-[#0d1117] flex items-center justify-center p-6">
         <div class="w-full max-w-[340px] text-center">
-            <h1 class="text-5xl font-black text-blue-500 italic tracking-tighter mb-12 drop-shadow-2xl">DEVSTUDIO</h1>
+            <div class="w-20 h-20 bg-blue-600/10 rounded-[30px] flex items-center justify-center mx-auto mb-8 border border-blue-600/20">
+                <span class="text-blue-500 text-3xl font-black italic">DS</span>
+            </div>
+            <h1 class="text-4xl font-black text-white italic mb-10 tracking-tighter">DEVSTUDIO</h1>
             <div class="bg-[#161b22] p-8 rounded-[40px] border border-[#30363d] shadow-2xl">
                 <input type="email" id="email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl mb-4 text-white outline-none focus:border-blue-500">
                 <input type="password" id="pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl mb-8 text-white outline-none focus:border-blue-500">
-                <button onclick="authAction()" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-white text-[10px] tracking-[0.2em] uppercase shadow-xl shadow-blue-600/20 active:scale-95 transition-all">Launch Environment</button>
+                <button onclick="authAction()" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-white text-[10px] tracking-widest uppercase shadow-xl shadow-blue-600/20 active:scale-95 transition-all">OPEN WORKSPACE</button>
             </div>
         </div>
     </div>
@@ -197,7 +231,7 @@
     <div id="toast" class="toast">Action completed!</div>
 
 <script>
-    const DB_KEY = 'ds_pro_v2_db';
+    const DB_KEY = 'ds_pro_v3_db';
     let db = JSON.parse(localStorage.getItem(DB_KEY)) || { users: {} };
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
     let userKey = localStorage.getItem('ds_api_key') || "";
@@ -205,8 +239,9 @@
     let curReplIdx = null;
     let curFileIdx = null;
     let lastSaved = "";
+    let isPreviewOpen = false;
 
-    // --- Auth & Storage ---
+    // --- Authentication ---
     function authAction() {
         const email = document.getElementById('email').value, pass = document.getElementById('pass').value;
         if(!email || !pass) return showToast("กรุณากรอกข้อมูล");
@@ -227,24 +262,25 @@
 
     function logout() { localStorage.removeItem('ds_session'); location.reload(); }
 
-    // --- Dashboard & REPLs ---
+    // --- Dashboard ---
     function loadDashboard() {
         document.getElementById('dashboard-ui').classList.remove('hidden');
         document.getElementById('workspace-ui').classList.add('hidden');
-        document.getElementById('current-project-display').textContent = "No Project";
+        document.getElementById('preview-overlay').classList.remove('open');
         const list = document.getElementById('repl-list');
         list.innerHTML = '';
         
         session.repls.forEach((repl, idx) => {
             const card = document.createElement('div');
-            card.className = "group bg-[#161b22] border border-[#30363d] p-8 rounded-[32px] hover:border-blue-500 transition-all cursor-pointer relative shadow-xl hover:-translate-y-2";
+            card.className = "group bg-[#161b22] border border-[#30363d] p-8 rounded-[32px] hover:border-blue-500 transition-all cursor-pointer relative shadow-xl hover:-translate-y-1";
             card.innerHTML = `
-                <div class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-2">Cloud Instance</div>
+                <div class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-2">Repl Instance</div>
                 <div class="text-2xl font-bold text-white mb-6">${repl.name}</div>
-                <div class="flex items-center gap-3 text-[10px] text-gray-400 font-bold uppercase">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${repl.files.length} Files
+                <div class="flex items-center gap-2 text-[10px] text-gray-500 font-bold uppercase italic">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-emerald-500"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    ${repl.files.length} Files
                 </div>
-                <button onclick="deleteRepl(event, ${idx})" class="absolute top-8 right-8 text-gray-600 hover:text-red-500 transition-colors">✕</button>
+                <button onclick="deleteRepl(event, ${idx})" class="absolute top-8 right-8 text-gray-700 hover:text-red-500">✕</button>
             `;
             card.onclick = () => openRepl(idx);
             list.appendChild(card);
@@ -252,7 +288,7 @@
     }
 
     function triggerCreateRepl() {
-        openModal("Create New REPL", "Repl Name...", (val) => {
+        openModal("Create New Project", "Repl Name...", (val) => {
             session.repls.push({ name: val, files: [{ name: 'index.html', content: getHTMLTemplate() }] });
             saveToLocalStorage();
             loadDashboard();
@@ -261,14 +297,14 @@
 
     function deleteRepl(e, idx) {
         e.stopPropagation();
-        if(confirm("ลบโปรเจกต์นี้ถาวร?")) {
+        if(confirm("ลบโปรเจกต์นี้?")) {
             session.repls.splice(idx, 1);
             saveToLocalStorage();
             loadDashboard();
         }
     }
 
-    // --- Workspace & File Tree ---
+    // --- Workspace ---
     function openRepl(idx) {
         curReplIdx = idx;
         const repl = session.repls[idx];
@@ -284,15 +320,14 @@
         tree.innerHTML = '';
         session.repls[curReplIdx].files.forEach((file, i) => {
             const el = document.createElement('div');
-            el.className = `file-item ${curFileIdx === i ? 'active' : ''}`;
+            el.className = `file-item ${curFileIdx === i ? 'active' : ''} group`;
             el.innerHTML = `
                 <div class="flex items-center gap-3">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z"/><path d="M13 2V9H20"/></svg>
-                    <span>${file.name}</span>
+                    <span class="truncate max-w-[150px]">${file.name}</span>
                 </div>
-                <div onclick="deleteFile(event, ${i})" class="text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">✕</div>
+                <div onclick="deleteFile(event, ${i})" class="text-gray-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">✕</div>
             `;
-            el.className += " group";
             el.onclick = () => selectFile(i);
             tree.appendChild(el);
         });
@@ -303,7 +338,7 @@
             session.repls[curReplIdx].files.push({ name: val, content: getHTMLTemplate() });
             saveToLocalStorage();
             renderFileTree();
-            selectFile(session.projects ? 0 : session.repls[curReplIdx].files.length - 1);
+            selectFile(session.repls[curReplIdx].files.length - 1);
         });
     }
 
@@ -319,13 +354,13 @@
     function selectFile(idx) {
         curFileIdx = idx;
         const file = session.repls[curReplIdx].files[idx];
-        document.getElementById('active-tab-name').textContent = file.name;
+        document.getElementById('active-tab-name').innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-500"></span> ${file.name}`;
         document.getElementById('code-input').value = file.content;
         lastSaved = file.content;
         document.getElementById('btn-save').disabled = true;
         renderFileTree();
         applyHighlight();
-        refreshPreview();
+        if(isPreviewOpen) refreshPreview();
     }
 
     function onCodeChange() {
@@ -340,18 +375,48 @@
         lastSaved = code;
         document.getElementById('btn-save').disabled = true;
         saveToLocalStorage();
-        showToast("Saved!");
-        refreshPreview();
+        showToast("File Saved!");
+        if(isPreviewOpen) refreshPreview();
+    }
+
+    // --- Preview Management ---
+    function togglePreview() {
+        const overlay = document.getElementById('preview-overlay');
+        const btn = document.getElementById('preview-toggle-btn');
+        isPreviewOpen = !isPreviewOpen;
+        
+        if(isPreviewOpen) {
+            overlay.classList.add('open');
+            btn.classList.add('active');
+            refreshPreview();
+        } else {
+            overlay.classList.remove('open');
+            btn.classList.remove('active');
+        }
     }
 
     function refreshPreview() {
         const code = document.getElementById('code-input').value;
         const frame = document.getElementById('preview-frame');
+        const status = document.getElementById('preview-status');
+        
+        status.textContent = "UPDATING...";
+        status.className = "text-[9px] text-amber-600 font-bold bg-amber-100 px-2 py-0.5 rounded-full";
+        
         const blob = new Blob([code], {type: 'text/html'});
         frame.src = URL.createObjectURL(blob);
+        
+        setTimeout(() => {
+            status.textContent = "LIVE";
+            status.className = "text-[9px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full";
+        }, 500);
     }
 
-    // --- UI Utilities ---
+    // --- UI Helpers ---
+    function toggleSidebar() {
+        document.getElementById('workspace-ui').classList.toggle('show-sidebar');
+    }
+    function backToDashboard() { loadDashboard(); }
     function openModal(title, placeholder, callback) {
         document.getElementById('modal-title').textContent = title;
         document.getElementById('modal-input').placeholder = placeholder;
@@ -363,10 +428,8 @@
     }
     function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); document.getElementById('modal-input').value = ''; }
     function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-    function backToDashboard() { loadDashboard(); }
     function applyHighlight() { document.getElementById('backdrop').textContent = document.getElementById('code-input').value; }
     function syncScroll() { document.getElementById('backdrop').scrollTop = document.getElementById('code-input').scrollTop; document.getElementById('backdrop').scrollLeft = document.getElementById('code-input').scrollLeft; }
-    function handleSearch() { /* Implementation inherited */ }
 
     // --- AI Engine ---
     function openAIWizard() {
@@ -390,7 +453,7 @@
         const msgArea = document.getElementById('ai-messages');
         const loader = document.createElement('div');
         loader.className = "p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-[10px] text-blue-400 font-bold italic";
-        loader.textContent = "AI กำลังคิดและเขียนโค้ดให้คุณ...";
+        loader.textContent = "AI กำลังเขียนโค้ดให้คุณ...";
         msgArea.appendChild(loader);
         
         try {
@@ -398,25 +461,24 @@
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     contents: [{ parts: [{ text: prompt }] }],
-                    systemInstruction: { parts: [{ text: "You are a professional web developer. Output ONLY valid code. No talk. No markdown." }] }
+                    systemInstruction: { parts: [{ text: "You are an expert web developer. Return ONLY valid code. No text, no backticks." }] }
                 })
             });
             const data = await res.json();
-            const code = data.candidates[0].content.parts[0].text.replace(/```[a-z]*\n/gi, '').replace(/\n```/g, '').trim();
+            const code = data.candidates[0].content.parts[0].text.trim();
             
             document.getElementById('code-input').value = code;
             applyHighlight();
-            refreshPreview();
+            if(isPreviewOpen) refreshPreview();
             closeAIWizard();
-            showToast("AI Generated!");
+            showToast("AI Code Ready!");
         } catch(e) { loader.textContent = "AI Error: " + e.message; }
     }
 
     function getHTMLTemplate() {
-        return '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <script src="https://cdn.tailwindcss.com"><\/script>\n<\/head>\n<body class="bg-gray-50 flex items-center justify-center min-h-screen">\n  <div class="text-center">\n    <h1 class="text-4xl font-black text-blue-600">DevStudio REPL</h1>\n    <p class="text-gray-500 mt-2">Start coding something amazing.</p>\n  </div>\n<\/body>\n<\/html>';
+        return '<!DOCTYPE html>\n<html>\n<head>\n  <script src="https://cdn.tailwindcss.com"><\/script>\n<\/head>\n<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen font-sans">\n  <div class="text-center p-8 bg-gray-800 rounded-3xl border border-gray-700 shadow-2xl">\n    <h1 class="text-4xl font-black text-blue-500 italic">HELLO WORLD</h1>\n    <p class="text-gray-400 mt-4">Edit this file to see live changes.</p>\n  </div>\n</body>\n</html>';
     }
 
-    // Init
     const savedSess = JSON.parse(localStorage.getItem('ds_session'));
     if(savedSess && db.users[savedSess.email]) {
         session = db.users[savedSess.email];
@@ -426,4 +488,3 @@
 </script>
 </body>
 </html>
-
