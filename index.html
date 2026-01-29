@@ -3,477 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Pro - Zen Edition</title>
+    <title>DevStudio Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --bg-dark: #050505;
-            --bg-editor: #0a0a0a;
-            --accent-blue: #3b82f6;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --tab-active: #111111;
+            --bg-dark: #000000;
+            --bg-surface: #0a0a0a;
+            --bg-card: #111111;
+            --accent: #3b82f6;
+            --border: rgba(255, 255, 255, 0.06);
+            --text-main: #e5e7eb;
+            --text-dim: #6b7280;
         }
 
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
+            font-family: 'Inter', sans-serif; 
             background: var(--bg-dark); 
-            color: #e5e7eb; 
+            color: var(--text-main); 
             margin: 0; 
             height: 100vh; 
             overflow: hidden;
+            font-size: 13px; /* Smaller base font for modern look */
         }
 
-        .code-font { font-family: 'JetBrains Mono', monospace; }
+        .code-font { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 
-        /* Navigation Header */
-        .glass-nav {
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        /* Tabs Bar */
-        .tabs-row {
+        /* UI Containers */
+        .header-slim {
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            background: #000;
-            border-bottom: 1px solid var(--border-subtle);
-            height: 44px;
-            overflow: hidden;
+            padding: 0 12px;
+            justify-content: space-between;
         }
-        .tabs-scroll {
+
+        .tabs-slim {
+            height: 34px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
             display: flex;
-            flex: 1;
             overflow-x: auto;
             scrollbar-width: none;
         }
-        .tabs-scroll::-webkit-scrollbar { display: none; }
-        
-        .tab {
-            padding: 0 20px;
-            height: 44px;
+        .tabs-slim::-webkit-scrollbar { display: none; }
+
+        .tab-item {
+            padding: 0 14px;
+            height: 100%;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #6b7280;
+            gap: 6px;
+            color: var(--text-dim);
+            border-right: 1px solid var(--border);
             cursor: pointer;
-            border-right: 1px solid var(--border-subtle);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #050505;
-            position: relative;
+            transition: 0.15s;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
         }
-        .tab:hover { color: #fff; background: #0a0a0a; }
-        .tab.active {
-            background: var(--bg-editor);
+        .tab-item:hover { background: #0a0a0a; color: #fff; }
+        .tab-item.active {
+            background: var(--bg-surface);
             color: #fff;
-            font-weight: 600;
-        }
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--accent-blue);
-        }
-        .tab-close { opacity: 0; transition: 0.2s; }
-        .tab:hover .tab-close { opacity: 0.5; }
-        .tab-close:hover { opacity: 1 !important; color: #ef4444; }
-
-        .btn-add {
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #6b7280;
-            border-left: 1px solid var(--border-subtle);
+            box-shadow: inset 0 -1px 0 var(--accent);
         }
 
-        /* Editor Area */
-        .editor-container {
-            position: relative;
-            flex: 1;
-            background: var(--bg-editor);
-            display: flex;
-            flex-direction: column;
-        }
-        #code-input {
+        /* Input/Editor Customization */
+        textarea {
+            background: var(--bg-surface);
+            color: #d1d5db;
+            padding: 16px;
+            border: none;
+            outline: none !important;
+            resize: none;
+            line-height: 1.6;
             width: 100%;
             height: 100%;
-            background: transparent;
-            color: #d1d5db;
-            padding: 24px;
-            font-size: 14px;
-            line-height: 1.6;
-            border: none;
-            outline: none;
-            resize: none;
-            white-space: pre;
-            tab-size: 4;
         }
 
-        /* Desktop Modal Simulation */
-        .desktop-modal {
+        /* Custom Modern Modal */
+        .modal-overlay {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            width: 90vw;
-            height: 80vh;
-            background: #fff;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 320px;
             border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            z-index: 2000;
+            padding: 20px;
+            transform: scale(0.95);
+            transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-overlay.open .modal-box { transform: scale(1); }
+
+        /* Desktop Simulation Enhancements */
+        .pc-frame {
+            position: fixed;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 95vw;
+            height: calc(100vh - 80px);
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
+            z-index: 4000;
             display: none;
             flex-direction: column;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            opacity: 0;
-        }
-        .desktop-modal.show {
-            display: flex;
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-        .desktop-header {
-            height: 40px;
-            background: #f3f4f6;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            gap: 8px;
-        }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot.red { background: #ff5f56; }
-        .dot.yellow { background: #ffbd2e; }
-        .dot.green { background: #27c93f; }
-
-        /* Dashboard Styles */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .project-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            padding: 24px;
-            border-radius: 16px;
-            transition: all 0.3s ease;
-        }
-        .project-card:hover {
-            border-color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.05);
-            transform: translateY(-4px);
-        }
-
-        .overlay-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
-            z-index: 1900;
-            display: none;
-        }
-
-        /* Toast Notification */
-        #toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1f2937;
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            transform: translateY(100px);
             transition: 0.3s;
-            z-index: 3000;
         }
-        #toast.show { transform: translateY(0); }
+        .pc-frame.open { display: flex; transform: translateX(-50%) translateY(0); }
+
+        /* Dashboard & Cards */
+        .dashboard-container {
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .proj-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .proj-card:hover { border-color: var(--accent); background: #161616; }
+
+        /* Notification Toast */
+        .toast-notify {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: #fff;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            z-index: 6000;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: 0.3s;
+            pointer-events: none;
+        }
+        .toast-notify.show { opacity: 1; transform: translateX(0); }
+
+        /* Utility Buttons */
+        .btn-mini { padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; transition: 0.2s; }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-outline { border: 1px solid var(--border); color: var(--text-dim); }
+        .btn-outline:hover { color: #fff; border-color: #fff; }
+
+        .btn-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: var(--text-dim); transition: 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.05); color: #fff; }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <!-- Navbar -->
-    <nav class="glass-nav h-14 flex items-center justify-between px-6 shrink-0 z-50">
-        <div class="flex items-center gap-6">
-            <button onclick="exitToDashboard()" class="text-gray-400 hover:text-white transition-colors">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    <!-- Header -->
+    <header class="header-slim shrink-0">
+        <div class="flex items-center gap-4">
+            <button onclick="navDashboard()" class="btn-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             </button>
-            <div class="flex flex-col">
-                <span id="proj-name-display" class="text-sm font-bold tracking-tight">Project Title</span>
-                <span id="save-status" class="text-[10px] text-gray-500 font-medium">Local DB Ready</span>
+            <div class="flex flex-col leading-tight">
+                <span id="p-title" class="text-[11px] font-bold tracking-tight">MY-APP</span>
+                <span id="save-status" class="text-[9px] text-gray-600 font-medium">READY</span>
             </div>
         </div>
-        
-        <div class="flex items-center gap-3">
-            <button onclick="saveCurrentFile()" id="save-btn" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-400 border border-transparent hover:border-white/10 transition-all">SAVE</button>
-            <button onclick="runProject()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> RUN
+        <div class="flex items-center gap-2">
+            <button onclick="saveFile()" id="btn-save" class="btn-mini btn-outline disabled:opacity-30">SAVE</button>
+            <button onclick="togglePC()" class="btn-mini btn-accent flex items-center gap-1.5">
+                <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> RUN
             </button>
         </div>
-    </nav>
+    </header>
 
-    <!-- Workspace Area -->
-    <div id="workspace" class="flex-1 flex flex-col hidden">
-        <!-- Tab Bar -->
-        <div class="tabs-row">
-            <div id="tabs-container" class="tabs-scroll"></div>
-            <button onclick="triggerNewFile()" class="btn-add hover:text-white transition-colors">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-            </button>
+    <!-- Project Editor View -->
+    <div id="editor-view" class="flex-1 flex flex-col hidden">
+        <div class="tabs-slim">
+            <div id="tabs-list" class="flex"></div>
+            <button onclick="triggerNewFile()" class="btn-icon h-full w-10 border-l border-[var(--border)]">+</button>
         </div>
-
-        <!-- Editor -->
-        <div class="editor-container">
-            <textarea id="code-input" class="code-font" spellcheck="false" oninput="onCodeInput()" placeholder="// เริ่มเขียนโค้ดที่นี่..."></textarea>
+        <div class="flex-1 relative overflow-hidden">
+            <textarea id="code-area" class="code-font" spellcheck="false" oninput="onEdit()"></textarea>
         </div>
     </div>
 
-    <!-- Dashboard Area -->
-    <div id="dashboard" class="fixed inset-0 bg-[#050505] z-[100] flex flex-col p-10 overflow-y-auto">
-        <div class="max-w-6xl w-full mx-auto">
-            <div class="flex justify-between items-center mb-12">
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="fixed inset-0 z-[100] bg-black overflow-y-auto">
+        <div class="dashboard-container">
+            <div class="flex justify-between items-end mb-10">
                 <div>
-                    <h1 class="text-4xl font-black italic tracking-tighter text-white">PRO STUDIO</h1>
-                    <p class="text-gray-500 text-sm mt-1">จัดเก็บโปรเจกต์ภายในเครื่อง ปลอดภัย และฟรี</p>
+                    <h1 class="text-xs font-black tracking-[0.2em] text-blue-500 uppercase mb-1">LOCAL WORKSPACE</h1>
+                    <h2 class="text-2xl font-bold text-white">Project Browser</h2>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="importJSON()" class="px-5 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold text-xs hover:bg-white/5 transition-all">IMPORT</button>
-                    <button onclick="triggerNewProject()" class="px-6 py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:scale-105 transition-all shadow-xl shadow-white/10">+ NEW PROJECT</button>
+                <div class="flex gap-2">
+                    <button onclick="importProject()" class="btn-mini btn-outline">IMPORT</button>
+                    <button onclick="triggerNewProject()" class="btn-mini bg-white text-black hover:bg-gray-200">NEW PROJECT</button>
                 </div>
             </div>
-            
-            <div id="project-list" class="dashboard-grid"></div>
+            <div id="project-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
     </div>
 
-    <!-- PC Display Simulation Modal -->
-    <div id="pc-overlay" class="overlay-bg" onclick="closeRun()"></div>
-    <div id="pc-modal" class="desktop-modal">
-        <div class="desktop-header">
-            <div class="dot red" onclick="closeRun()"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-            <div class="ml-4 flex-1 text-center">
-                <span class="text-[11px] font-bold text-gray-500 font-mono tracking-widest uppercase">Desktop Preview</span>
+    <!-- PC Simulation View -->
+    <div id="pc-view" class="pc-frame">
+        <div class="h-8 bg-[#f1f1f1] border-b flex items-center px-3 justify-between">
+            <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-400 cursor-pointer" onclick="togglePC()"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-400"></div>
             </div>
-            <button onclick="exportProject()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">EXPORT PROJECT</button>
+            <span class="text-[9px] font-bold text-gray-400 font-mono tracking-widest">PREVIEW MODE</span>
+            <div class="w-10"></div>
         </div>
-        <div class="flex-1 bg-white relative">
-            <iframe id="preview-frame" class="w-full h-full border-none"></iframe>
-        </div>
+        <iframe id="preview-frame" class="flex-1 w-full bg-white border-none"></iframe>
     </div>
 
-    <!-- Modals -->
-    <div id="input-modal" class="fixed inset-0 z-[3000] bg-black/90 hidden items-center justify-center backdrop-blur-sm p-6">
-        <div class="bg-[#111] border border-white/10 p-8 rounded-3xl w-full max-w-sm">
-            <p id="modal-label" class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-4">Input Name</p>
-            <input type="text" id="modal-input" class="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-blue-500 mb-6" placeholder="...">
-            <div class="flex gap-3">
-                <button onclick="closeInputModal()" class="flex-1 text-gray-500 font-bold text-xs">CANCEL</button>
-                <button id="modal-confirm" class="flex-2 bg-blue-600 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Confirm</button>
+    <!-- CUSTOM ALERT/CONFIRM MODAL -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title" class="text-xs font-black text-blue-500 tracking-widest uppercase mb-2">SYSTEM</h3>
+            <p id="modal-desc" class="text-xs text-gray-400 mb-6 leading-relaxed">Description goes here.</p>
+            <div id="modal-input-container" class="hidden mb-6">
+                <input type="text" id="modal-field" class="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white outline-none focus:border-blue-500">
+            </div>
+            <div class="flex gap-2" id="modal-actions">
+                <button id="modal-cancel" class="flex-1 btn-mini btn-outline py-2">CANCEL</button>
+                <button id="modal-ok" class="flex-1 btn-mini btn-accent py-2">CONFIRM</button>
             </div>
         </div>
     </div>
 
-    <input type="file" id="import-input" class="hidden" accept=".json" onchange="handleImport(event)">
-    <div id="toast">Message here</div>
+    <div id="toast" class="toast-notify">SAVED</div>
+    <input type="file" id="file-helper" class="hidden" accept=".json" onchange="handleImport(event)">
 
 <script>
-    const DB_STORE = 'DevStudioZenDB';
-    let dbInstance, projects = [], curIdx = null, activeFileIdx = 0, lastSaved = "";
+    const DB_NAME = 'DevUltraDB';
+    let db, projects = [], activePIdx = null, activeFIdx = 0, lastContent = "";
 
-    // --- Core Database ---
-    function initDB() {
-        const req = indexedDB.open(DB_STORE, 1);
-        req.onupgradeneeded = e => e.target.result.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
-        req.onsuccess = e => { dbInstance = e.target.result; loadAll(); };
-    }
+    // --- DB Setup ---
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+    req.onsuccess = e => { db = e.target.result; loadAll(); };
 
     function loadAll() {
-        const store = dbInstance.transaction('projects', 'readonly').objectStore('projects');
-        store.getAll().onsuccess = (e) => { projects = e.target.result; renderDashboard(); };
+        const store = db.transaction('projects', 'readonly').objectStore('projects');
+        store.getAll().onsuccess = e => { projects = e.target.result; renderDashboard(); };
     }
 
-    function syncDB(project, cb) {
-        const tx = dbInstance.transaction('projects', 'readwrite');
-        tx.objectStore('projects').put(project).onsuccess = () => { if(cb) cb(); loadAll(); };
+    function sync(p, cb) {
+        const tx = db.transaction('projects', 'readwrite');
+        tx.objectStore('projects').put(p).onsuccess = () => { if(cb) cb(); loadAll(); };
     }
 
-    // --- Dashboard UI ---
+    // --- Modern Custom Dialog ---
+    function customUI(type, title, desc, callback, defaultValue = "") {
+        const modal = document.getElementById('custom-modal');
+        const field = document.getElementById('modal-field');
+        const inputDiv = document.getElementById('modal-input-container');
+        const okBtn = document.getElementById('modal-ok');
+        const cancelBtn = document.getElementById('modal-cancel');
+
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-desc').textContent = desc;
+        
+        inputDiv.classList.toggle('hidden', type !== 'input');
+        cancelBtn.classList.toggle('hidden', type === 'alert');
+        if(type === 'input') field.value = defaultValue;
+
+        modal.classList.add('open');
+
+        const close = () => modal.classList.remove('open');
+        
+        okBtn.onclick = () => { close(); if(type === 'input') callback(field.value); else callback(true); };
+        cancelBtn.onclick = () => { close(); if(type !== 'alert') callback(false); };
+    }
+
+    // --- Dashboard ---
     function renderDashboard() {
-        const list = document.getElementById('project-list');
-        list.innerHTML = '';
-        projects.forEach((p, idx) => {
+        const grid = document.getElementById('project-grid');
+        grid.innerHTML = '';
+        projects.forEach((p, i) => {
             const card = document.createElement('div');
-            card.className = "project-card relative group";
+            card.className = "proj-card group relative";
             card.innerHTML = `
-                <div class="text-[10px] font-black text-blue-600 mb-1 uppercase tracking-widest">Project</div>
-                <h3 class="text-xl font-bold text-white mb-2">${p.name}</h3>
-                <p class="text-gray-500 text-xs">${p.files.length} Files • Sync OK</p>
-                <div class="absolute bottom-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onclick="deleteProj(event, ${p.id})" class="p-2 text-gray-600 hover:text-red-500">✕</button>
+                <div class="text-[9px] font-bold text-gray-500 mb-1">ID: ${p.id}</div>
+                <div class="text-sm font-bold text-white mb-3">${p.name}</div>
+                <div class="flex justify-between items-center text-[10px] text-gray-600">
+                    <span>${p.files.length} Files</span>
+                    <button onclick="delProj(event, ${p.id})" class="text-red-900 group-hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">DELETE</button>
                 </div>
             `;
-            card.onclick = () => openProject(idx);
-            list.appendChild(card);
+            card.onclick = () => openProj(i);
+            grid.appendChild(card);
         });
     }
 
-    // --- Project Operations ---
-    function openProject(idx) {
-        curIdx = idx;
+    // --- Editor ---
+    function openProj(idx) {
+        activePIdx = idx;
         const p = projects[idx];
-        document.getElementById('proj-name-display').textContent = p.name;
-        document.getElementById('dashboard').classList.add('hidden');
-        document.getElementById('workspace').classList.remove('hidden');
-        selectFile(0);
+        document.getElementById('p-title').textContent = p.name.toUpperCase();
+        document.getElementById('dashboard-view').classList.add('hidden');
+        document.getElementById('editor-view').classList.remove('hidden');
+        openFile(0);
     }
 
-    function selectFile(fIdx) {
-        activeFileIdx = fIdx;
-        const file = projects[curIdx].files[fIdx];
-        document.getElementById('code-input').value = file.content;
-        lastSaved = file.content;
-        updateUIState();
+    function openFile(fIdx) {
+        activeFIdx = fIdx;
+        const file = projects[activePIdx].files[fIdx];
+        const area = document.getElementById('code-area');
+        area.value = file.content;
+        lastContent = file.content;
+        updateUI();
         renderTabs();
     }
 
     function renderTabs() {
-        const container = document.getElementById('tabs-container');
-        container.innerHTML = '';
-        projects[curIdx].files.forEach((f, i) => {
-            const t = document.createElement('div');
-            t.className = `tab ${activeFileIdx === i ? 'active' : ''}`;
-            t.innerHTML = `<span onclick="selectFile(${i})">${f.name}</span> <span class="tab-close" onclick="deleteFile(event, ${i})">×</span>`;
-            container.appendChild(t);
+        const list = document.getElementById('tabs-list');
+        list.innerHTML = '';
+        projects[activePIdx].files.forEach((f, i) => {
+            const tab = document.createElement('div');
+            tab.className = `tab-item ${activeFIdx === i ? 'active' : ''}`;
+            tab.innerHTML = `<span onclick="openFile(${i})">${f.name}</span> <span class="hover:text-red-500 text-[10px]" onclick="delFile(event, ${i})">×</span>`;
+            list.appendChild(tab);
         });
     }
 
-    function onCodeInput() {
-        const current = document.getElementById('code-input').value;
-        const changed = current !== lastSaved;
-        document.getElementById('save-btn').disabled = !changed;
-        document.getElementById('save-status').textContent = changed ? "Unsaved Changes*" : "All Saved Locally";
-        document.getElementById('save-btn').style.color = changed ? "white" : "";
+    function onEdit() {
+        const changed = document.getElementById('code-area').value !== lastContent;
+        document.getElementById('btn-save').disabled = !changed;
+        document.getElementById('save-status').textContent = changed ? "MODIFIED" : "SYNCED";
+        document.getElementById('save-status').className = `text-[9px] font-medium ${changed ? 'text-amber-500' : 'text-gray-600'}`;
     }
 
-    function saveCurrentFile() {
-        const code = document.getElementById('code-input').value;
-        projects[curIdx].files[activeFileIdx].content = code;
-        lastSaved = code;
-        syncDB(projects[curIdx], () => {
-            showToast("Sync Successful");
-            updateUIState();
+    function saveFile() {
+        const code = document.getElementById('code-area').value;
+        projects[activePIdx].files[activeFIdx].content = code;
+        lastContent = code;
+        sync(projects[activePIdx], () => {
+            updateUI();
+            notify("SAVED TO DISK");
         });
     }
 
-    function updateUIState() {
-        document.getElementById('save-btn').disabled = true;
-        document.getElementById('save-btn').style.color = "";
-        document.getElementById('save-status').textContent = "Synced to Browser";
+    function updateUI() {
+        document.getElementById('btn-save').disabled = true;
+        document.getElementById('save-status').textContent = "SYNCED";
+        document.getElementById('save-status').className = "text-[9px] font-medium text-gray-600";
     }
 
-    // --- Run System (PC Simulation) ---
-    function runProject() {
-        const modal = document.getElementById('pc-modal');
-        const overlay = document.getElementById('pc-overlay');
+    // --- Actions ---
+    function togglePC() {
+        const pc = document.getElementById('pc-view');
         const frame = document.getElementById('preview-frame');
-        
-        // Find main HTML or use current
-        const htmlFile = projects[curIdx].files.find(f => f.name.endsWith('.html')) || projects[curIdx].files[0];
-        const blob = new Blob([htmlFile.content], { type: 'text/html' });
-        
-        frame.src = URL.createObjectURL(blob);
-        overlay.style.display = 'block';
-        modal.classList.add('show');
+        const isOpen = pc.classList.toggle('open');
+        if(isOpen) {
+            const html = projects[activePIdx].files.find(f => f.name.endsWith('.html')) || projects[activePIdx].files[0];
+            const blob = new Blob([html.content], { type: 'text/html' });
+            frame.src = URL.createObjectURL(blob);
+        }
     }
 
-    function closeRun() {
-        document.getElementById('pc-modal').classList.remove('show');
-        document.getElementById('pc-overlay').style.display = 'none';
-    }
-
-    // --- File Ops ---
     function triggerNewFile() {
-        showInputModal("New File Name", "index.html", (name) => {
-            projects[curIdx].files.push({ name, content: '' });
-            syncDB(projects[curIdx], () => selectFile(projects[curIdx].files.length - 1));
+        customUI('input', 'NEW FILE', 'Enter filename with extension', (name) => {
+            if(!name) return;
+            projects[activePIdx].files.push({ name, content: '' });
+            sync(projects[activePIdx], () => openFile(projects[activePIdx].files.length - 1));
         });
     }
 
-    function deleteFile(e, fIdx) {
+    function delFile(e, fIdx) {
         e.stopPropagation();
-        if(projects[curIdx].files.length <= 1) return;
-        if(!confirm("Delete this file?")) return;
-        projects[curIdx].files.splice(fIdx, 1);
-        if(activeFileIdx >= fIdx) activeFileIdx = Math.max(0, activeFileIdx - 1);
-        syncDB(projects[curIdx], () => selectFile(activeFileIdx));
+        if(projects[activePIdx].files.length <= 1) return notify("CANNOT DELETE LAST FILE");
+        customUI('confirm', 'DELETE FILE', 'Are you sure you want to remove this file?', (ok) => {
+            if(!ok) return;
+            projects[activePIdx].files.splice(fIdx, 1);
+            activeFIdx = Math.max(0, activeFIdx - 1);
+            sync(projects[activePIdx], () => openFile(activeFIdx));
+        });
     }
 
     function triggerNewProject() {
-        showInputModal("Project Name", "New Website", (name) => {
-            const p = { name, files: [{ name: 'index.html', content: '<h1>My Website</h1>' }], date: Date.now() };
-            syncDB(p, () => loadAll());
+        customUI('input', 'NEW PROJECT', 'Enter a name for your new workspace', (name) => {
+            if(!name) return;
+            const p = { name, files: [{ name: 'index.html', content: '<!-- Start Coding -->' }], last: Date.now() };
+            sync(p);
         });
     }
 
-    function deleteProj(e, id) {
+    function delProj(e, id) {
         e.stopPropagation();
-        if(!confirm("Delete project permanently?")) return;
-        const tx = dbInstance.transaction('projects', 'readwrite');
-        tx.objectStore('projects').delete(id).onsuccess = () => loadAll();
+        customUI('confirm', 'DELETE PROJECT', 'This will wipe all files in this project permanently.', (ok) => {
+            if(!ok) return;
+            const tx = db.transaction('projects', 'readwrite');
+            tx.objectStore('projects').delete(id).onsuccess = () => loadAll();
+        });
     }
 
-    // --- UI Utilities ---
-    function exitToDashboard() {
-        document.getElementById('workspace').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        closeRun();
+    function navDashboard() {
+        document.getElementById('editor-view').classList.add('hidden');
+        document.getElementById('dashboard-view').classList.remove('hidden');
+        document.getElementById('pc-view').classList.remove('open');
     }
 
-    function showInputModal(lbl, val, cb) {
-        document.getElementById('modal-label').textContent = lbl;
-        document.getElementById('modal-input').value = val;
-        document.getElementById('input-modal').classList.replace('hidden', 'flex');
-        document.getElementById('modal-confirm').onclick = () => {
-            const v = document.getElementById('modal-input').value;
-            if(v) { cb(v); closeInputModal(); }
-        };
-    }
-    function closeInputModal() { document.getElementById('input-modal').classList.replace('flex', 'hidden'); }
-    
-    function showToast(m) {
+    function notify(m) {
         const t = document.getElementById('toast');
         t.textContent = m;
         t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2500);
+        setTimeout(() => t.classList.remove('show'), 2000);
     }
 
-    function exportProject() {
-        const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects[curIdx]));
-        const a = document.createElement('a'); a.href = str; a.download = projects[curIdx].name + ".json"; a.click();
-    }
-    function importJSON() { document.getElementById('import-input').click(); }
+    // Backup & Import
+    function importProject() { document.getElementById('file-helper').click(); }
     function handleImport(e) {
         const reader = new FileReader();
         reader.onload = ev => {
-            const p = JSON.parse(ev.target.result);
-            delete p.id;
-            syncDB(p, () => loadAll());
+            try {
+                const p = JSON.parse(ev.target.result);
+                delete p.id;
+                sync(p);
+                notify("IMPORT SUCCESS");
+            } catch(err) { notify("INVALID FILE"); }
         };
         reader.readAsText(e.target.files[0]);
     }
-
-    initDB();
 </script>
 </body>
-                </html>
+    </html>
