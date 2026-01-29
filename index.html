@@ -3,542 +3,477 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Next-Gen</title>
+    <title>DevStudio Pro - Zen Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --bg-root: #0e1117; /* Replit Dark */
-            --bg-sidebar: #161b22;
-            --bg-editor: #0d1117;
-            --bg-terminal: #09090b;
-            --border: #30363d;
-            --accent: #0079f2; /* Replit Blue */
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
+            --bg-dark: #050505;
+            --bg-editor: #0a0a0a;
+            --accent-blue: #3b82f6;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --tab-active: #111111;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-root); color: var(--text-main); margin: 0; height: 100vh; overflow: hidden; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-dark); 
+            color: #e5e7eb; 
+            margin: 0; 
+            height: 100vh; 
+            overflow: hidden;
+        }
+
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+
+        /* Navigation Header */
+        .glass-nav {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* Tabs Bar */
+        .tabs-row {
+            display: flex;
+            align-items: center;
+            background: #000;
+            border-bottom: 1px solid var(--border-subtle);
+            height: 44px;
+            overflow: hidden;
+        }
+        .tabs-scroll {
+            display: flex;
+            flex: 1;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs-scroll::-webkit-scrollbar { display: none; }
         
-        /* Layout Grid */
-        .ide-grid {
-            display: grid;
-            grid-template-columns: 240px 1fr;
-            grid-template-rows: 48px 1fr 180px; /* Header | Editor | Terminal */
-            height: 100vh;
-            transition: 0.3s ease;
+        .tab {
+            padding: 0 20px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            cursor: pointer;
+            border-right: 1px solid var(--border-subtle);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #050505;
+            position: relative;
         }
-        .ide-grid.sidebar-collapsed { grid-template-columns: 0px 1fr; }
-        .ide-grid.terminal-collapsed { grid-template-rows: 48px 1fr 32px; }
-
-        /* Areas */
-        .header { grid-column: 1 / -1; grid-row: 1; background: var(--bg-sidebar); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; px-4; z-index: 20; }
-        .sidebar { grid-column: 1; grid-row: 2 / -1; background: var(--bg-sidebar); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
-        .main-editor { grid-column: 2; grid-row: 2; background: var(--bg-editor); position: relative; display: flex; flex-direction: column; overflow: hidden; }
-        .terminal { grid-column: 2; grid-row: 3; background: var(--bg-terminal); border-top: 1px solid var(--border); display: flex; flex-direction: column; }
-
-        /* Code Editor Tech */
-        .code-area { flex: 1; position: relative; overflow: hidden; display: flex; }
-        .line-numbers {
-            width: 40px;
+        .tab:hover { color: #fff; background: #0a0a0a; }
+        .tab.active {
             background: var(--bg-editor);
-            color: #484f58;
-            text-align: right;
-            padding: 20px 8px 20px 0;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            user-select: none;
-            border-right: 1px solid #21262d;
+            color: #fff;
+            font-weight: 600;
         }
-        .editor-wrapper { position: relative; flex: 1; overflow: auto; }
-        
-        #code-input, #syntax-highlight {
-            position: absolute; top: 0; left: 0;
-            width: 100%; min-height: 100%;
-            padding: 20px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            border: none; outline: none;
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-blue);
+        }
+        .tab-close { opacity: 0; transition: 0.2s; }
+        .tab:hover .tab-close { opacity: 0.5; }
+        .tab-close:hover { opacity: 1 !important; color: #ef4444; }
+
+        .btn-add {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            border-left: 1px solid var(--border-subtle);
+        }
+
+        /* Editor Area */
+        .editor-container {
+            position: relative;
+            flex: 1;
+            background: var(--bg-editor);
+            display: flex;
+            flex-direction: column;
+        }
+        #code-input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: #d1d5db;
+            padding: 24px;
+            font-size: 14px;
+            line-height: 1.6;
+            border: none;
+            outline: none;
+            resize: none;
             white-space: pre;
-            tab-size: 2;
-        }
-        #code-input { color: transparent; background: transparent; caret-color: white; z-index: 2; resize: none; overflow: hidden; }
-        #syntax-highlight { color: #e6edf3; z-index: 1; pointer-events: none; }
-
-        /* Syntax Colors */
-        .tok-tag { color: #7ee787; }
-        .tok-attr { color: #79c0ff; }
-        .tok-str { color: #a5d6ff; }
-        .tok-comment { color: #8b949e; font-style: italic; }
-        .tok-keyword { color: #ff7b72; }
-
-        /* Tabs */
-        .tabs-bar { display: flex; background: #010409; overflow-x: auto; height: 36px; }
-        .tab { 
-            padding: 0 16px; display: flex; align-items: center; gap: 8px; 
-            font-size: 12px; color: var(--text-muted); cursor: pointer; border-right: 1px solid var(--border);
-            border-top: 2px solid transparent; transition: 0.1s;
-        }
-        .tab:hover { background: #161b22; color: white; }
-        .tab.active { background: var(--bg-editor); color: white; border-top-color: var(--accent); }
-
-        /* Preview Split */
-        .split-view { display: flex; height: 100%; width: 100%; }
-        .split-editor { flex: 1; position: relative; display: flex; flex-direction: column; transition: 0.3s; }
-        .split-preview { width: 0; transition: 0.3s; background: white; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-        .split-view.open .split-preview { width: 50%; }
-        
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .ide-grid { grid-template-columns: 1fr; grid-template-rows: 48px 1fr; }
-            .sidebar { display: none; position: absolute; z-index: 50; height: calc(100% - 48px); bottom: 0; width: 80%; }
-            .sidebar.mobile-open { display: flex; }
-            .terminal { display: none; } /* Hide terminal on mobile to save space */
-            .split-view.open .split-editor { display: none; }
-            .split-view.open .split-preview { width: 100%; }
+            tab-size: 4;
         }
 
-        /* Utility */
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 5px; border: 2px solid var(--bg-root); }
-        .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--text-muted); transition: 0.2s; }
-        .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; }
-        .btn-primary { background: var(--accent); color: white; font-weight: 600; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
-        .btn-primary:hover { opacity: 0.9; }
-        
-        .loader { width: 14px; height: 14px; border: 2px solid white; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Desktop Modal Simulation */
+        .desktop-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90vw;
+            height: 80vh;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+        }
+        .desktop-modal.show {
+            display: flex;
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .desktop-header {
+            height: 40px;
+            background: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        /* Dashboard Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .project-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            padding: 24px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-4px);
+        }
+
+        .overlay-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1900;
+            display: none;
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1f2937;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(100px);
+            transition: 0.3s;
+            z-index: 3000;
+        }
+        #toast.show { transform: translateY(0); }
     </style>
 </head>
-<body>
+<body class="flex flex-col">
 
-    <div class="ide-grid" id="main-layout">
-        <!-- HEADER -->
-        <header class="header px-4">
-            <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white lg:hidden">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold text-white">DS</div>
-                    <span class="font-bold text-sm hidden sm:block" id="project-title">My Project</span>
+    <!-- Navbar -->
+    <nav class="glass-nav h-14 flex items-center justify-between px-6 shrink-0 z-50">
+        <div class="flex items-center gap-6">
+            <button onclick="exitToDashboard()" class="text-gray-400 hover:text-white transition-colors">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </button>
+            <div class="flex flex-col">
+                <span id="proj-name-display" class="text-sm font-bold tracking-tight">Project Title</span>
+                <span id="save-status" class="text-[10px] text-gray-500 font-medium">Local DB Ready</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button onclick="saveCurrentFile()" id="save-btn" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-400 border border-transparent hover:border-white/10 transition-all">SAVE</button>
+            <button onclick="runProject()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> RUN
+            </button>
+        </div>
+    </nav>
+
+    <!-- Workspace Area -->
+    <div id="workspace" class="flex-1 flex flex-col hidden">
+        <!-- Tab Bar -->
+        <div class="tabs-row">
+            <div id="tabs-container" class="tabs-scroll"></div>
+            <button onclick="triggerNewFile()" class="btn-add hover:text-white transition-colors">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+            </button>
+        </div>
+
+        <!-- Editor -->
+        <div class="editor-container">
+            <textarea id="code-input" class="code-font" spellcheck="false" oninput="onCodeInput()" placeholder="// เริ่มเขียนโค้ดที่นี่..."></textarea>
+        </div>
+    </div>
+
+    <!-- Dashboard Area -->
+    <div id="dashboard" class="fixed inset-0 bg-[#050505] z-[100] flex flex-col p-10 overflow-y-auto">
+        <div class="max-w-6xl w-full mx-auto">
+            <div class="flex justify-between items-center mb-12">
+                <div>
+                    <h1 class="text-4xl font-black italic tracking-tighter text-white">PRO STUDIO</h1>
+                    <p class="text-gray-500 text-sm mt-1">จัดเก็บโปรเจกต์ภายในเครื่อง ปลอดภัย และฟรี</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="importJSON()" class="px-5 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold text-xs hover:bg-white/5 transition-all">IMPORT</button>
+                    <button onclick="triggerNewProject()" class="px-6 py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:scale-105 transition-all shadow-xl shadow-white/10">+ NEW PROJECT</button>
                 </div>
             </div>
             
-            <div class="flex items-center gap-2">
-                <button onclick="saveProject()" id="btn-save" class="text-xs text-gray-400 hover:text-white px-3 py-1.5 border border-transparent hover:border-[#30363d] rounded transition-all">
-                    <span id="save-indicator">Saved</span>
-                </button>
-                <button onclick="toggleRun()" class="btn-primary flex items-center gap-2">
-                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Run
-                </button>
-                <button onclick="openAI()" class="bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold px-3 py-1.5 rounded-md text-xs flex items-center gap-1 shadow-lg hover:brightness-110 transition-all">
-                    ✨ AI
-                </button>
-            </div>
-        </header>
-
-        <!-- SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
-            <div class="p-3 border-b border-[#30363d] flex justify-between items-center">
-                <span class="text-xs font-bold text-gray-500 uppercase">Explorer</span>
-                <div class="flex gap-1">
-                    <button onclick="createNewFile()" class="p-1 hover:text-white text-gray-500" title="New File">+</button>
-                    <button onclick="exportProject()" class="p-1 hover:text-white text-gray-500" title="Download">↓</button>
-                </div>
-            </div>
-            <div id="file-list" class="flex-1 overflow-y-auto py-2"></div>
-            <div class="p-3 border-t border-[#30363d] mt-auto">
-                <button onclick="openDashboard()" class="w-full text-left text-xs text-gray-400 hover:text-white py-2 flex items-center gap-2">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Back to Dashboard
-                </button>
-            </div>
-        </aside>
-
-        <!-- MAIN EDITOR AREA (SPLIT VIEW) -->
-        <section class="main-editor">
-            <div class="split-view" id="split-view">
-                <!-- Editor Side -->
-                <div class="split-editor">
-                    <div class="tabs-bar" id="tabs-bar"></div>
-                    <div class="code-area">
-                        <div class="line-numbers" id="line-numbers">1</div>
-                        <div class="editor-wrapper" onscroll="syncScroll()">
-                            <div id="syntax-highlight"></div>
-                            <textarea id="code-input" spellcheck="false" oninput="handleInput()" onkeydown="handleTab(event)"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <!-- Preview Side -->
-                <div class="split-preview">
-                    <div class="h-8 bg-[#f3f4f6] border-b flex items-center justify-between px-2">
-                        <span class="text-[10px] text-gray-500 font-mono">localhost:3000 (Simulated)</span>
-                        <div class="flex gap-2">
-                            <button onclick="refreshPreview()" class="text-gray-500 hover:text-black">↻</button>
-                            <button onclick="toggleRun()" class="text-gray-500 hover:text-black">✕</button>
-                        </div>
-                    </div>
-                    <iframe id="preview-frame" class="flex-1 w-full border-none"></iframe>
-                </div>
-            </div>
-        </section>
-
-        <!-- TERMINAL -->
-        <section class="terminal">
-            <div class="h-8 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-3 cursor-pointer" onclick="toggleTerminal()">
-                <span class="text-xs font-bold text-gray-400">Console / Terminal</span>
-                <span class="text-xs text-gray-600">^</span>
-            </div>
-            <div id="console-output" class="flex-1 p-2 font-mono text-xs text-gray-300 overflow-y-auto space-y-1">
-                <div class="text-blue-400">> DevStudio Environment Ready...</div>
-            </div>
-        </section>
-    </div>
-
-    <!-- DASHBOARD OVERLAY -->
-    <div id="dashboard" class="fixed inset-0 z-50 bg-[#0e1117] flex flex-col items-center p-8 overflow-auto">
-        <div class="w-full max-w-4xl">
-            <div class="flex justify-between items-center mb-8 border-b border-[#30363d] pb-6">
-                <h1 class="text-2xl font-bold text-white">Your Projects</h1>
-                <div class="flex gap-3">
-                    <button onclick="importProject()" class="text-xs font-bold text-gray-400 hover:text-white border border-[#30363d] px-4 py-2 rounded-lg">Import JSON</button>
-                    <button onclick="createNewProject()" class="text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500">+ New Repl</button>
-                </div>
-            </div>
-            <div id="project-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            <div id="project-list" class="dashboard-grid"></div>
         </div>
     </div>
 
-    <!-- AI WIZARD -->
-    <div id="ai-modal" class="fixed inset-0 z-[60] bg-black/80 hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-[#161b22] border border-[#30363d] w-full max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[80vh]">
-            <div class="p-4 border-b border-[#30363d] flex justify-between items-center">
-                <span class="text-sm font-bold text-amber-400">AI Assistant</span>
-                <button onclick="closeAI()" class="text-gray-500 hover:text-white">✕</button>
+    <!-- PC Display Simulation Modal -->
+    <div id="pc-overlay" class="overlay-bg" onclick="closeRun()"></div>
+    <div id="pc-modal" class="desktop-modal">
+        <div class="desktop-header">
+            <div class="dot red" onclick="closeRun()"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <div class="ml-4 flex-1 text-center">
+                <span class="text-[11px] font-bold text-gray-500 font-mono tracking-widest uppercase">Desktop Preview</span>
             </div>
-            <div id="ai-chat" class="flex-1 p-4 overflow-y-auto space-y-3 bg-[#0d1117]"></div>
-            <div class="p-3 border-t border-[#30363d] flex gap-2">
-                <input type="text" id="ai-prompt" class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 text-sm text-white outline-none" placeholder="Ask AI to write code...">
-                <button onclick="sendAI()" class="bg-blue-600 text-white px-4 rounded-lg text-xs font-bold">SEND</button>
+            <button onclick="exportProject()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">EXPORT PROJECT</button>
+        </div>
+        <div class="flex-1 bg-white relative">
+            <iframe id="preview-frame" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="input-modal" class="fixed inset-0 z-[3000] bg-black/90 hidden items-center justify-center backdrop-blur-sm p-6">
+        <div class="bg-[#111] border border-white/10 p-8 rounded-3xl w-full max-w-sm">
+            <p id="modal-label" class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-4">Input Name</p>
+            <input type="text" id="modal-input" class="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-blue-500 mb-6" placeholder="...">
+            <div class="flex gap-3">
+                <button onclick="closeInputModal()" class="flex-1 text-gray-500 font-bold text-xs">CANCEL</button>
+                <button id="modal-confirm" class="flex-2 bg-blue-600 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Confirm</button>
             </div>
         </div>
     </div>
 
-    <input type="file" id="file-upload" class="hidden" onchange="handleFileImport(event)">
+    <input type="file" id="import-input" class="hidden" accept=".json" onchange="handleImport(event)">
+    <div id="toast">Message here</div>
 
 <script>
-    // --- DATABASE ---
-    const DB_NAME = 'DevStudioNext';
-    let db, currentProject = null, activeFileIndex = 0;
-    
-    // Init IndexedDB
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = e => {
-        e.target.result.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
-    };
-    request.onsuccess = e => {
-        db = e.target.result;
-        loadProjects();
-    };
+    const DB_STORE = 'DevStudioZenDB';
+    let dbInstance, projects = [], curIdx = null, activeFileIdx = 0, lastSaved = "";
 
-    // --- DASHBOARD LOGIC ---
-    function loadProjects() {
-        const tx = db.transaction('projects', 'readonly');
-        const store = tx.objectStore('projects');
-        const req = store.getAll();
-        req.onsuccess = () => {
-            const list = document.getElementById('project-list');
-            list.innerHTML = '';
-            if (req.result.length === 0) list.innerHTML = '<div class="text-gray-600 col-span-3 text-center py-10">No projects yet. Create one!</div>';
-            req.result.forEach(p => {
-                const card = document.createElement('div');
-                card.className = "bg-[#161b22] border border-[#30363d] p-5 rounded-xl hover:border-blue-500 cursor-pointer group relative";
-                card.innerHTML = `
-                    <div class="font-bold text-white mb-1">${p.name}</div>
-                    <div class="text-xs text-gray-500">${p.files.length} files • Last edit: ${new Date(p.lastEdit).toLocaleDateString()}</div>
-                    <button onclick="deleteProject(event, ${p.id})" class="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100">✕</button>
-                `;
-                card.onclick = () => openProject(p.id);
-                list.appendChild(card);
-            });
-        };
+    // --- Core Database ---
+    function initDB() {
+        const req = indexedDB.open(DB_STORE, 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+        req.onsuccess = e => { dbInstance = e.target.result; loadAll(); };
     }
 
-    function createNewProject() {
-        const name = prompt("Project Name:", "Untitled Repl");
-        if (!name) return;
-        const project = {
-            name,
-            lastEdit: Date.now(),
-            files: [{ name: 'index.html', content: '<h1>Hello World</h1>' }]
-        };
-        const tx = db.transaction('projects', 'readwrite');
-        tx.objectStore('projects').add(project);
-        tx.oncomplete = () => loadProjects();
+    function loadAll() {
+        const store = dbInstance.transaction('projects', 'readonly').objectStore('projects');
+        store.getAll().onsuccess = (e) => { projects = e.target.result; renderDashboard(); };
     }
 
-    function deleteProject(e, id) {
-        e.stopPropagation();
-        if(!confirm("Delete this project?")) return;
-        const tx = db.transaction('projects', 'readwrite');
-        tx.objectStore('projects').delete(id);
-        tx.oncomplete = () => loadProjects();
+    function syncDB(project, cb) {
+        const tx = dbInstance.transaction('projects', 'readwrite');
+        tx.objectStore('projects').put(project).onsuccess = () => { if(cb) cb(); loadAll(); };
     }
 
-    function openProject(id) {
-        const tx = db.transaction('projects', 'readonly');
-        const req = tx.objectStore('projects').get(id);
-        req.onsuccess = () => {
-            currentProject = req.result;
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('project-title').textContent = currentProject.name;
-            renderFiles();
-            openFile(0);
-            logConsole("Project loaded: " + currentProject.name);
-        };
-    }
-
-    function openDashboard() {
-        document.getElementById('dashboard').classList.remove('hidden');
-        loadProjects();
-    }
-
-    // --- EDITOR LOGIC ---
-    function renderFiles() {
-        const list = document.getElementById('file-list');
+    // --- Dashboard UI ---
+    function renderDashboard() {
+        const list = document.getElementById('project-list');
         list.innerHTML = '';
-        currentProject.files.forEach((f, i) => {
-            const el = document.createElement('div');
-            el.className = `px-4 py-2 text-xs cursor-pointer hover:bg-[#21262d] flex justify-between group ${activeFileIndex === i ? 'bg-[#21262d] text-white border-l-2 border-blue-500' : 'text-gray-400'}`;
-            el.innerHTML = `<span>${f.name}</span> <span onclick="deleteFile(event, ${i})" class="hidden group-hover:inline text-gray-500 hover:text-red-400">×</span>`;
-            el.onclick = () => openFile(i);
-            list.appendChild(el);
+        projects.forEach((p, idx) => {
+            const card = document.createElement('div');
+            card.className = "project-card relative group";
+            card.innerHTML = `
+                <div class="text-[10px] font-black text-blue-600 mb-1 uppercase tracking-widest">Project</div>
+                <h3 class="text-xl font-bold text-white mb-2">${p.name}</h3>
+                <p class="text-gray-500 text-xs">${p.files.length} Files • Sync OK</p>
+                <div class="absolute bottom-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="deleteProj(event, ${p.id})" class="p-2 text-gray-600 hover:text-red-500">✕</button>
+                </div>
+            `;
+            card.onclick = () => openProject(idx);
+            list.appendChild(card);
         });
+    }
+
+    // --- Project Operations ---
+    function openProject(idx) {
+        curIdx = idx;
+        const p = projects[idx];
+        document.getElementById('proj-name-display').textContent = p.name;
+        document.getElementById('dashboard').classList.add('hidden');
+        document.getElementById('workspace').classList.remove('hidden');
+        selectFile(0);
+    }
+
+    function selectFile(fIdx) {
+        activeFileIdx = fIdx;
+        const file = projects[curIdx].files[fIdx];
+        document.getElementById('code-input').value = file.content;
+        lastSaved = file.content;
+        updateUIState();
         renderTabs();
     }
 
     function renderTabs() {
-        const bar = document.getElementById('tabs-bar');
-        bar.innerHTML = '';
-        currentProject.files.forEach((f, i) => {
-            const tab = document.createElement('div');
-            tab.className = `tab ${activeFileIndex === i ? 'active' : ''}`;
-            tab.textContent = f.name;
-            tab.onclick = () => openFile(i);
-            bar.appendChild(tab);
+        const container = document.getElementById('tabs-container');
+        container.innerHTML = '';
+        projects[curIdx].files.forEach((f, i) => {
+            const t = document.createElement('div');
+            t.className = `tab ${activeFileIdx === i ? 'active' : ''}`;
+            t.innerHTML = `<span onclick="selectFile(${i})">${f.name}</span> <span class="tab-close" onclick="deleteFile(event, ${i})">×</span>`;
+            container.appendChild(t);
         });
     }
 
-    function openFile(index) {
-        if (!currentProject.files[index]) return;
-        activeFileIndex = index;
-        const file = currentProject.files[index];
-        const input = document.getElementById('code-input');
-        input.value = file.content;
-        renderFiles();
-        updateLineNumbers();
-        highlightSyntax();
+    function onCodeInput() {
+        const current = document.getElementById('code-input').value;
+        const changed = current !== lastSaved;
+        document.getElementById('save-btn').disabled = !changed;
+        document.getElementById('save-status').textContent = changed ? "Unsaved Changes*" : "All Saved Locally";
+        document.getElementById('save-btn').style.color = changed ? "white" : "";
     }
 
-    function createNewFile() {
-        const name = prompt("File Name (e.g. style.css):");
-        if (!name) return;
-        currentProject.files.push({ name, content: '' });
-        saveProject();
-        renderFiles();
-        openFile(currentProject.files.length - 1);
-    }
-
-    function deleteFile(e, index) {
-        e.stopPropagation();
-        if(currentProject.files.length <= 1) return alert("Cannot delete last file");
-        if(!confirm("Delete file?")) return;
-        currentProject.files.splice(index, 1);
-        if(activeFileIndex >= index) activeFileIndex = Math.max(0, activeFileIndex - 1);
-        saveProject();
-        renderFiles();
-        openFile(activeFileIndex);
-    }
-
-    function handleInput() {
-        const content = document.getElementById('code-input').value;
-        currentProject.files[activeFileIndex].content = content;
-        document.getElementById('save-indicator').textContent = "Unsaved*";
-        document.getElementById('save-indicator').classList.add('text-yellow-500');
-        updateLineNumbers();
-        highlightSyntax();
-    }
-
-    function handleTab(e) {
-        if(e.key === 'Tab') {
-            e.preventDefault();
-            document.execCommand('insertText', false, '  ');
-        }
-    }
-
-    function saveProject() {
-        if(!currentProject) return;
-        currentProject.lastEdit = Date.now();
-        const tx = db.transaction('projects', 'readwrite');
-        tx.objectStore('projects').put(currentProject);
-        document.getElementById('save-indicator').textContent = "Saved";
-        document.getElementById('save-indicator').classList.remove('text-yellow-500');
-        
-        // Auto refresh preview if open
-        if(document.getElementById('split-view').classList.contains('open')) {
-            refreshPreview();
-        }
-    }
-
-    // --- SYNTAX HIGHLIGHTING (Lite Version) ---
-    function highlightSyntax() {
+    function saveCurrentFile() {
         const code = document.getElementById('code-input').value;
-        const display = document.getElementById('syntax-highlight');
-        
-        // Simple HTML/JS Highlighting regex
-        let formatted = code
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-            .replace(/(&lt;\/?)(\w+)(.*?)(&gt;)/g, '<span class="tok-tag">$1$2</span>$3<span class="tok-tag">$4</span>')
-            .replace(/(".*?")/g, '<span class="tok-str">$1</span>')
-            .replace(/\b(function|const|let|var|if|else|return|class)\b/g, '<span class="tok-keyword">$1</span>');
-
-        display.innerHTML = formatted;
-        syncScroll();
+        projects[curIdx].files[activeFileIdx].content = code;
+        lastSaved = code;
+        syncDB(projects[curIdx], () => {
+            showToast("Sync Successful");
+            updateUIState();
+        });
     }
 
-    function updateLineNumbers() {
-        const lines = document.getElementById('code-input').value.split('\n').length;
-        document.getElementById('line-numbers').innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+    function updateUIState() {
+        document.getElementById('save-btn').disabled = true;
+        document.getElementById('save-btn').style.color = "";
+        document.getElementById('save-status').textContent = "Synced to Browser";
     }
 
-    function syncScroll() {
-        const input = document.getElementById('code-input');
-        document.getElementById('syntax-highlight').scrollTop = input.scrollTop;
-        document.getElementById('syntax-highlight').scrollLeft = input.scrollLeft;
-        document.getElementById('line-numbers').scrollTop = input.scrollTop;
-    }
-
-    // --- PREVIEW & CONSOLE ---
-    function toggleRun() {
-        const split = document.getElementById('split-view');
-        split.classList.toggle('open');
-        if (split.classList.contains('open')) refreshPreview();
-    }
-
-    function refreshPreview() {
+    // --- Run System (PC Simulation) ---
+    function runProject() {
+        const modal = document.getElementById('pc-modal');
+        const overlay = document.getElementById('pc-overlay');
         const frame = document.getElementById('preview-frame');
-        const htmlFile = currentProject.files.find(f => f.name.endsWith('.html')) || currentProject.files[0];
         
-        // Inject Console Capture Script
-        const consoleScript = `<script>
-            (function(){
-                const oldLog = console.log;
-                console.log = function(...args){
-                    window.parent.postMessage({type: 'log', content: args.join(' ')}, '*');
-                    oldLog.apply(console, args);
-                };
-                window.onerror = function(msg){
-                    window.parent.postMessage({type: 'error', content: msg}, '*');
-                }
-            })();
-        <\/script>`;
-
-        // Combine CSS/JS if needed (Basic implementation just runs HTML)
-        const finalContent = htmlFile.content.replace('<head>', '<head>' + consoleScript);
+        // Find main HTML or use current
+        const htmlFile = projects[curIdx].files.find(f => f.name.endsWith('.html')) || projects[curIdx].files[0];
+        const blob = new Blob([htmlFile.content], { type: 'text/html' });
         
-        frame.srcdoc = finalContent;
-        logConsole("Preview refreshed.");
+        frame.src = URL.createObjectURL(blob);
+        overlay.style.display = 'block';
+        modal.classList.add('show');
     }
 
-    function toggleTerminal() {
-        document.getElementById('main-layout').classList.toggle('terminal-collapsed');
+    function closeRun() {
+        document.getElementById('pc-modal').classList.remove('show');
+        document.getElementById('pc-overlay').style.display = 'none';
     }
 
-    function logConsole(msg, type='info') {
-        const consoleEl = document.getElementById('console-output');
-        const line = document.createElement('div');
-        line.className = type === 'error' ? 'text-red-400' : 'text-gray-300';
-        line.textContent = `> ${msg}`;
-        consoleEl.appendChild(line);
-        consoleEl.scrollTop = consoleEl.scrollHeight;
+    // --- File Ops ---
+    function triggerNewFile() {
+        showInputModal("New File Name", "index.html", (name) => {
+            projects[curIdx].files.push({ name, content: '' });
+            syncDB(projects[curIdx], () => selectFile(projects[curIdx].files.length - 1));
+        });
     }
 
-    window.addEventListener('message', (e) => {
-        if(e.data.type === 'log') logConsole(e.data.content);
-        if(e.data.type === 'error') logConsole(e.data.content, 'error');
-    });
+    function deleteFile(e, fIdx) {
+        e.stopPropagation();
+        if(projects[curIdx].files.length <= 1) return;
+        if(!confirm("Delete this file?")) return;
+        projects[curIdx].files.splice(fIdx, 1);
+        if(activeFileIdx >= fIdx) activeFileIdx = Math.max(0, activeFileIdx - 1);
+        syncDB(projects[curIdx], () => selectFile(activeFileIdx));
+    }
 
-    // --- UI HELPERS ---
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); }
+    function triggerNewProject() {
+        showInputModal("Project Name", "New Website", (name) => {
+            const p = { name, files: [{ name: 'index.html', content: '<h1>My Website</h1>' }], date: Date.now() };
+            syncDB(p, () => loadAll());
+        });
+    }
+
+    function deleteProj(e, id) {
+        e.stopPropagation();
+        if(!confirm("Delete project permanently?")) return;
+        const tx = dbInstance.transaction('projects', 'readwrite');
+        tx.objectStore('projects').delete(id).onsuccess = () => loadAll();
+    }
+
+    // --- UI Utilities ---
+    function exitToDashboard() {
+        document.getElementById('workspace').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        closeRun();
+    }
+
+    function showInputModal(lbl, val, cb) {
+        document.getElementById('modal-label').textContent = lbl;
+        document.getElementById('modal-input').value = val;
+        document.getElementById('input-modal').classList.replace('hidden', 'flex');
+        document.getElementById('modal-confirm').onclick = () => {
+            const v = document.getElementById('modal-input').value;
+            if(v) { cb(v); closeInputModal(); }
+        };
+    }
+    function closeInputModal() { document.getElementById('input-modal').classList.replace('flex', 'hidden'); }
     
-    // --- AI Logic (User Key) ---
-    function openAI() { document.getElementById('ai-modal').classList.remove('hidden'); }
-    function closeAI() { document.getElementById('ai-modal').classList.add('hidden'); }
-    
-    async function sendAI() {
-        const prompt = document.getElementById('ai-prompt').value;
-        const chat = document.getElementById('ai-chat');
-        const apiKey = localStorage.getItem('user_api_key') || prompt("Enter Gemini API Key:");
-        
-        if(!apiKey) return;
-        localStorage.setItem('user_api_key', apiKey);
-
-        chat.innerHTML += `<div class="text-right text-blue-400 text-xs mb-2">${prompt}</div>`;
-        document.getElementById('ai-prompt').value = "";
-
-        try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: "Write code for: " + prompt }] }] })
-            });
-            const data = await res.json();
-            const code = data.candidates[0].content.parts[0].text.replace(/```[a-z]*\n/gi, '').replace(/\n```/g, '').trim();
-            
-            chat.innerHTML += `<div class="text-left text-green-400 text-xs mb-2">Code generated. Check editor.</div>`;
-            
-            // Auto insert code
-            currentProject.files.push({ name: 'ai_generated.html', content: code });
-            saveProject();
-            renderFiles();
-            openFile(currentProject.files.length - 1);
-            closeAI();
-        } catch(e) {
-            chat.innerHTML += `<div class="text-left text-red-400 text-xs mb-2">Error: ${e.message}</div>`;
-        }
+    function showToast(m) {
+        const t = document.getElementById('toast');
+        t.textContent = m;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    // --- Import/Export ---
     function exportProject() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentProject));
-        const a = document.createElement('a');
-        a.href = dataStr; a.download = currentProject.name + ".json";
-        a.click();
+        const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects[curIdx]));
+        const a = document.createElement('a'); a.href = str; a.download = projects[curIdx].name + ".json"; a.click();
     }
-    
-    function importProject() { document.getElementById('file-upload').click(); }
-    function handleFileImport(e) {
+    function importJSON() { document.getElementById('import-input').click(); }
+    function handleImport(e) {
         const reader = new FileReader();
-        reader.onload = event => {
-            const proj = JSON.parse(event.target.result);
-            delete proj.id; 
-            const tx = db.transaction('projects', 'readwrite');
-            tx.objectStore('projects').add(proj);
-            tx.oncomplete = () => loadProjects();
+        reader.onload = ev => {
+            const p = JSON.parse(ev.target.result);
+            delete p.id;
+            syncDB(p, () => loadAll());
         };
         reader.readAsText(e.target.files[0]);
     }
 
-    // Shortcut
-    document.addEventListener('keydown', e => {
-        if((e.ctrlKey || e.metaKey) && e.key === 's') {
-            e.preventDefault();
-            saveProject();
-        }
-    });
-
+    initDB();
 </script>
 </body>
-    </html>
+                </html>
