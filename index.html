@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Compact</title>
+    <title>DevStudio Gold Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;700&display=swap');
         
         :root {
             --bg: #0d1117;
             --surface: #161b22;
             --border: #30363d;
-            --accent: #2f81f7;
-            --code-bg: #0d1117;
+            --gold: #ffcf40;
+            --gold-bg: rgba(255, 207, 64, 0.4);
         }
 
         body { 
@@ -27,219 +27,217 @@
 
         .code-font { 
             font-family: 'Fira Code', monospace; 
-            font-size: 14px; 
-            line-height: 1.5;
+            font-size: 15px; 
+            line-height: 1.6;
             tab-size: 4;
         }
 
-        .app-header {
-            height: 48px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        /* Item Cards with Shake effect */
-        .item-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px 10px;
-            text-align: center;
+        /* Editor Layout */
+        .editor-container {
             position: relative;
-            cursor: pointer;
-            user-select: none;
-            touch-action: none;
-        }
-
-        .is-shaking { animation: shake 0.2s infinite; border-color: #f85149; }
-        @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-1.5deg); }
-            75% { transform: rotate(1.5deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        .btn-del {
-            position: absolute; top: -8px; right: -8px;
-            width: 24px; height: 24px;
-            background: #f85149; color: white;
-            border-radius: 50%; display: none;
-            align-items: center; justify-content: center;
-            font-size: 12px; font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .is-shaking .btn-del { display: flex; }
-
-        /* Simple Editor Layout */
-        #editor-container {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background: var(--code-bg);
+            background: #0d1117;
+            overflow: hidden;
         }
 
-        #search-bar {
+        #code-input, #backdrop {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            padding: 20px;
+            margin: 0;
+            border: none;
+            box-sizing: border-box;
+            white-space: pre;
+            word-wrap: normal;
+            overflow: auto;
+        }
+
+        #code-input {
+            background: transparent;
+            color: #e6edf3;
+            caret-color: #fff;
+            z-index: 2;
+            outline: none;
+            resize: none;
+        }
+
+        #backdrop {
+            color: transparent;
+            z-index: 1;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Gold Match Style */
+        .match {
+            background-color: var(--gold-bg);
+            border-bottom: 2px solid var(--gold);
+            color: transparent;
+            border-radius: 2px;
+        }
+
+        /* Search Bar UI */
+        .search-area {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             padding: 8px 16px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
-        #code-input {
+        .search-input-wrapper {
             flex: 1;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            color: #e6edf3;
-            border: none;
-            padding: 16px;
-            resize: none;
-            outline: none;
-            white-space: pre;
-            overflow: auto;
+            display: flex;
+            align-items: center;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px 12px;
         }
 
-        /* Utility */
-        #toast {
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #f0f6fc; color: #161b22;
-            padding: 10px 24px; border-radius: 50px;
-            font-size: 13px; font-weight: 600;
-            transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            z-index: 9999;
+        /* Other UI */
+        .item-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
         }
-        #toast.active { transform: translateX(-50%) translateY(0); }
+        .is-shaking { animation: shake 0.2s infinite; border-color: #f85149; }
+        @keyframes shake {
+            0% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+            100% { transform: rotate(-1deg); }
+        }
+        .btn-del {
+            position: absolute; top: -10px; right: -10px;
+            width: 24px; height: 24px; background: #f85149;
+            color: white; border-radius: 50%; display: none;
+            align-items: center; justify-content: center; font-size: 10px;
+        }
+        .is-shaking .btn-del { display: flex; }
 
-        .hidden { display: none !important; }
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #fff; color: #000; padding: 10px 20px; border-radius: 20px;
+            font-size: 12px; font-weight: bold; transition: 0.3s; z-index: 5000;
+        }
+        .toast.active { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <!-- Auth Layer -->
+    <!-- Auth -->
     <div id="auth-ui" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
-        <div class="w-full max-w-[320px]">
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-blue-500 tracking-tighter">DEVSTUDIO</h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Compact Code Editor</p>
-            </div>
-            <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-2xl">
+        <div class="w-full max-w-[300px]">
+            <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic">DEVSTUDIO</h1>
+            <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-3xl">
                 <div id="login-box" class="space-y-4">
-                    <input type="email" id="l-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-sm text-white">
-                    <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-sm text-white">
-                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold text-sm text-white transition-all">Sign In</button>
-                    <p class="text-center text-xs text-gray-500">Need account? <span onclick="switchAuth('reg')" class="text-blue-400 cursor-pointer">Register</span></p>
+                    <input type="email" id="l-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                    <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white">LOGIN</button>
+                    <p class="text-center text-[10px] text-gray-500">New? <span onclick="switchAuth('reg')" class="text-blue-400 cursor-pointer underline">Register</span></p>
                 </div>
                 <div id="reg-box" class="space-y-4 hidden">
-                    <input type="text" id="r-name" placeholder="Full Name" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-sm text-white">
-                    <input type="email" id="r-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-sm text-white">
-                    <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-sm text-white">
-                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold text-sm text-white transition-all">Create Account</button>
-                    <p class="text-center text-xs text-gray-500">Have account? <span onclick="switchAuth('login')" class="text-blue-400 cursor-pointer">Login</span></p>
+                    <input type="text" id="r-name" placeholder="Name" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                    <input type="email" id="r-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                    <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white">SIGN UP</button>
+                    <p class="text-center text-[10px] text-gray-500">Have account? <span onclick="switchAuth('login')" class="text-blue-400 cursor-pointer underline">Login</span></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Header -->
-    <header class="app-header">
-        <div class="flex items-center gap-2">
-            <span class="text-blue-500 font-black text-lg italic">DS</span>
-            <span id="u-name" class="text-xs font-bold text-gray-400 ml-2"></span>
-        </div>
-        <button onclick="logout()" class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Logout</button>
+    <!-- Dashboard -->
+    <header class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
+        <span class="text-blue-500 font-bold text-sm tracking-tighter">DS COMPACT</span>
+        <button onclick="logout()" class="text-[9px] font-bold text-red-400 uppercase">Logout</button>
     </header>
 
-    <!-- Dashboard -->
-    <main id="dashboard" class="p-4 overflow-y-auto" style="height: calc(100vh - 48px);">
+    <main class="p-4" style="height: calc(100vh - 48px); overflow-y: auto;">
         <div id="view-folders">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xs font-black text-gray-500 uppercase tracking-widest">Your Folders</h2>
-                <button onclick="openModal('folder')" class="bg-blue-600 px-4 py-1.5 rounded-full text-[11px] font-bold text-white">+ New</button>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Folders</h2>
+                <button onclick="openModal('folder')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px]">+ NEW</button>
             </div>
-            <div id="list-folders" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+            <div id="list-folders" class="grid grid-cols-2 gap-3"></div>
         </div>
 
         <div id="view-files" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <button onclick="showHome()" class="text-sm font-bold text-gray-400">← Back</button>
-                <button onclick="openModal('file')" class="bg-emerald-600 px-4 py-1.5 rounded-full text-[11px] font-bold text-white">+ File</button>
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="showHome()" class="text-xs text-gray-400">← BACK</button>
+                <button onclick="openModal('file')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px]">+ FILE</button>
             </div>
-            <div id="list-files" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+            <div id="list-files" class="grid grid-cols-2 gap-3"></div>
         </div>
     </main>
 
-    <!-- Simple Editor -->
+    <!-- Editor with Gold Highlight Search -->
     <div id="editor-ui" class="fixed inset-0 z-[500] bg-[#0d1117] hidden flex-col">
         <div class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-            <div class="flex items-center gap-3">
-                <button onclick="closeEditor()" class="text-xs font-bold text-gray-500">EXIT</button>
-                <span id="file-label" class="text-blue-400 text-[11px] font-mono"></span>
-            </div>
+            <button onclick="closeEditor()" class="text-[10px] font-bold text-gray-500">EXIT</button>
             <div class="flex gap-2">
-                <button onclick="runProject()" class="px-4 py-1.5 bg-emerald-600 rounded-lg text-[10px] font-bold text-white">RUN</button>
-                <button id="btn-save" onclick="saveFile()" disabled class="px-4 py-1.5 bg-blue-600 rounded-lg text-[10px] font-bold text-white opacity-50">SAVE</button>
+                <button onclick="runProject()" class="px-4 py-1.5 bg-emerald-600 rounded-md text-[10px] font-bold text-white">RUN</button>
+                <button id="btn-save" onclick="saveFile()" class="px-4 py-1.5 bg-blue-600 rounded-md text-[10px] font-bold text-white">SAVE</button>
             </div>
-        </div>
-        
-        <div id="search-bar">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="find-input" placeholder="Find text..." class="bg-transparent border-none text-sm outline-none text-white flex-1" oninput="highlightSearch()">
-            <span id="find-results" class="text-[10px] font-bold text-gray-500"></span>
         </div>
 
-        <div id="editor-container">
-            <textarea id="code-input" class="code-font" spellcheck="false" oninput="onCodeChange()"></textarea>
+        <div class="search-area">
+            <div class="search-input-wrapper">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#484f58" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" id="find-input" placeholder="Search and Highlight Gold..." class="bg-transparent border-none text-xs outline-none text-white ml-2 flex-1" oninput="applyHighlight()">
+            </div>
+            <span id="match-count" class="text-[10px] font-bold text-gray-500"></span>
+        </div>
+
+        <div class="editor-container">
+            <div id="backdrop" class="code-font"></div>
+            <textarea id="code-input" class="code-font" spellcheck="false" oninput="applyHighlight()" onscroll="syncScroll()"></textarea>
         </div>
     </div>
 
     <!-- Runner -->
     <div id="preview-ui" class="fixed inset-0 z-[2000] bg-white hidden flex-col">
         <div class="h-12 bg-gray-100 border-b flex items-center justify-between px-4">
-            <span class="text-xs font-black text-gray-400 uppercase">Live Preview</span>
-            <button onclick="closePreview()" class="bg-red-500 text-white px-5 py-1.5 rounded-full text-[10px] font-bold">CLOSE</button>
+            <span class="text-[10px] font-bold text-gray-400">LIVE PREVIEW</span>
+            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold">CLOSE</button>
         </div>
         <iframe id="preview-frame" class="flex-1 w-full border-none"></iframe>
     </div>
 
-    <!-- Modal System -->
+    <!-- Modal -->
     <div id="modal-ui" class="fixed inset-0 z-[3000] bg-black/80 hidden items-center justify-center p-6">
-        <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-2xl w-full max-w-[280px]">
+        <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-3xl w-full max-w-[280px]">
             <p id="modal-title" class="text-[10px] font-bold text-gray-500 uppercase mb-4 text-center"></p>
             <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm mb-4">
             <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-1 text-xs text-gray-500 py-2">CANCEL</button>
+                <button onclick="closeModal()" class="flex-1 text-xs text-gray-400">CANCEL</button>
                 <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs">CREATE</button>
             </div>
         </div>
     </div>
 
-    <div id="toast">STATUS</div>
+    <div id="toast" class="toast">NOTIFICATION</div>
 
 <script>
-    const STORAGE_KEY = 'ds_compact_db';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { users: {} };
+    const KEY = 'ds_gold_db';
+    let db = JSON.parse(localStorage.getItem(KEY)) || { users: {} };
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
-    let currentFolder = null, currentFile = null, shakeTimer;
-    let lastSavedCode = "";
+    let curFolder = null, curFile = null, shakeTimer;
 
     // Auth
     function switchAuth(t) {
         document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
         document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg');
     }
-
     function handleAuth(type) {
         if(type === 'reg') {
             const e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, n = document.getElementById('r-name').value;
-            if(!e || !p) return notify("Fill fields");
+            if(!e || !p) return notify("Fill all fields");
             db.users[e] = { name: n, email: e, pass: p, folders: [] };
             saveDB(); startSession(db.users[e]);
         } else {
@@ -248,132 +246,118 @@
             if(u && u.pass === p) startSession(u); else notify("Login Failed");
         }
     }
-
     function startSession(u) {
         session = u; localStorage.setItem('ds_session', JSON.stringify(u));
         document.getElementById('auth-ui').style.display = 'none';
-        document.getElementById('u-name').textContent = u.name;
         renderFolders();
     }
-
     function logout() { localStorage.removeItem('ds_session'); location.reload(); }
 
     // Dashboard
     function showHome() {
         document.getElementById('view-folders').classList.remove('hidden');
         document.getElementById('view-files').classList.add('hidden');
-        currentFolder = null;
+        curFolder = null;
     }
-
     function renderFolders() {
         const list = document.getElementById('list-folders'); list.innerHTML = '';
         db.users[session.email].folders.forEach((f, i) => list.appendChild(createItem(i, f.name, 'folder')));
     }
-
     function renderFiles() {
         const list = document.getElementById('list-files'); list.innerHTML = '';
-        db.users[session.email].folders[currentFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file')));
+        db.users[session.email].folders[curFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file')));
     }
-
     function createItem(id, name, type) {
-        const card = document.createElement('div');
-        card.className = "item-card";
-        const icon = type === 'folder' 
-            ? `<svg class="w-10 h-10 text-yellow-500/80 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>`
-            : `<svg class="w-10 h-10 text-blue-500/80 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9l-7-7z"/></svg>`;
-        
-        card.innerHTML = `<div class="btn-del" onclick="deleteItem(event, ${id}, '${type}')">✕</div>${icon}<div class="text-[10px] font-bold truncate opacity-80">${name}</div>`;
-
-        card.onpointerdown = () => shakeTimer = setTimeout(() => card.classList.add('is-shaking'), 700);
-        card.onpointerup = card.onpointerleave = () => clearTimeout(shakeTimer);
-        
-        card.onclick = () => {
-            if(card.classList.contains('is-shaking')) return card.classList.remove('is-shaking');
-            if(type === 'folder') {
-                currentFolder = id;
-                document.getElementById('view-folders').classList.add('hidden');
-                document.getElementById('view-files').classList.remove('hidden');
-                renderFiles();
-            } else openEditor(id);
+        const el = document.createElement('div'); el.className = "item-card";
+        el.innerHTML = `<div class="btn-del" onclick="deleteItem(event, ${id}, '${type}')">✕</div><div class="text-[10px] font-bold truncate">${name}</div>`;
+        el.onpointerdown = () => shakeTimer = setTimeout(() => el.classList.add('is-shaking'), 800);
+        el.onpointerup = el.onpointerleave = () => clearTimeout(shakeTimer);
+        el.onclick = () => {
+            if(el.classList.contains('is-shaking')) return el.classList.remove('is-shaking');
+            if(type === 'folder') { curFolder = id; document.getElementById('view-folders').classList.add('hidden'); document.getElementById('view-files').classList.remove('hidden'); renderFiles(); }
+            else openEditor(id);
         };
-        return card;
+        return el;
     }
-
     function deleteItem(e, id, type) {
         e.stopPropagation();
         const u = db.users[session.email];
-        if(type === 'folder') u.folders.splice(id, 1); else u.folders[currentFolder].files.splice(id, 1);
+        if(type === 'folder') u.folders.splice(id, 1); else u.folders[curFolder].files.splice(id, 1);
         saveDB(); type === 'folder' ? renderFolders() : renderFiles();
     }
 
-    // Editor Logic
+    // Gold Highlight Logic
     function openEditor(id) {
-        currentFile = id;
-        const file = db.users[session.email].folders[currentFolder].files[id];
-        lastSavedCode = file.content;
-        document.getElementById('file-label').textContent = file.name;
+        curFile = id;
+        const file = db.users[session.email].folders[curFolder].files[id];
         document.getElementById('code-input').value = file.content;
         document.getElementById('find-input').value = "";
         document.getElementById('editor-ui').classList.replace('hidden', 'flex');
-        onCodeChange();
+        applyHighlight();
+    }
+
+    function applyHighlight() {
+        const input = document.getElementById('code-input');
+        const backdrop = document.getElementById('backdrop');
+        const find = document.getElementById('find-input').value;
+        const countEl = document.getElementById('match-count');
+        
+        let content = input.value;
+
+        if (find) {
+            const escapedFind = find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedFind})`, 'gi');
+            const matches = content.match(regex);
+            countEl.textContent = matches ? `${matches.length} FOUND` : "0 FOUND";
+            countEl.style.color = matches ? "var(--gold)" : "#484f58";
+            
+            // Render to backdrop with gold span
+            const html = content
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(regex, '<span class="match">$1</span>');
+            backdrop.innerHTML = html + (content.endsWith('\n') ? '\n' : '');
+        } else {
+            backdrop.innerHTML = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + (content.endsWith('\n') ? '\n' : '');
+            countEl.textContent = "";
+        }
+        syncScroll();
+    }
+
+    function syncScroll() {
+        const input = document.getElementById('code-input');
+        const backdrop = document.getElementById('backdrop');
+        backdrop.scrollTop = input.scrollTop;
+        backdrop.scrollLeft = input.scrollLeft;
     }
 
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
-
-    function onCodeChange() {
-        const current = document.getElementById('code-input').value;
-        const btn = document.getElementById('btn-save');
-        const changed = current !== lastSavedCode;
-        btn.disabled = !changed;
-        btn.style.opacity = changed ? "1" : "0.5";
-    }
-
     function saveFile() {
-        const code = document.getElementById('code-input').value;
-        db.users[session.email].folders[currentFolder].files[currentFile].content = code;
-        lastSavedCode = code;
-        saveDB(); onCodeChange(); notify("Saved Successfully");
+        db.users[session.email].folders[curFolder].files[curFile].content = document.getElementById('code-input').value;
+        saveDB(); notify("File Saved!");
     }
-
-    function highlightSearch() {
-        const query = document.getElementById('find-input').value.toLowerCase();
-        const text = document.getElementById('code-input').value.toLowerCase();
-        const res = document.getElementById('find-results');
-        if(!query) { res.textContent = ""; return; }
-        
-        let count = 0, pos = text.indexOf(query);
-        while(pos !== -1) { count++; pos = text.indexOf(query, pos + 1); }
-        res.textContent = count > 0 ? `${count} MATCHES` : "NO RESULTS";
-        res.style.color = count > 0 ? "#7ee787" : "#f85149";
-    }
-
     function runProject() {
-        const code = document.getElementById('code-input').value;
-        const blob = new Blob([code], {type: 'text/html'});
+        const blob = new Blob([document.getElementById('code-input').value], {type: 'text/html'});
         document.getElementById('preview-frame').src = URL.createObjectURL(blob);
         document.getElementById('preview-ui').classList.replace('hidden', 'flex');
     }
-
     function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
 
     // Modals
     function openModal(type) {
-        document.getElementById('modal-title').textContent = `New ${type} Name`;
+        document.getElementById('modal-title').textContent = `New ${type}`;
         document.getElementById('modal-input').value = '';
         document.getElementById('modal-ui').classList.replace('hidden', 'flex');
         document.getElementById('modal-confirm').onclick = () => {
-            const val = document.getElementById('modal-input').value;
-            if(!val) return;
+            const val = document.getElementById('modal-input').value; if(!val) return;
             const u = db.users[session.email];
             if(type === 'folder') u.folders.push({ name: val, files: [] });
-            else u.folders[currentFolder].files.push({ name: val, content: '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<title>New Page</title>\n</head>\n<body>\n  <h1>Hello DS</h1>\n</body>\n</html>' });
+            else u.folders[curFolder].files.push({ name: val, content: '<h1>New File</h1>' });
             saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal();
         };
     }
-
     function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); }
     function notify(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
-    function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+    function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
 
     if(session) startSession(session);
 </script>
