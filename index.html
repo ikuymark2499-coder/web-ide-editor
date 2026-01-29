@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Gold Search</title>
+    <title>DevStudio Gold Search + AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
@@ -14,8 +14,6 @@
             --border: #30363d;
             --gold: #ffcf40;
             --gold-bg: rgba(255, 207, 64, 0.4);
-            --folder-color: #7d8590;
-            --file-color: #2f81f7;
         }
 
         body { 
@@ -27,14 +25,9 @@
             overflow: hidden;
         }
 
-        .code-font { 
-            font-family: 'Fira Code', monospace; 
-            font-size: 15px; 
-            line-height: 1.6;
-            tab-size: 4;
-        }
+        .code-font { font-family: 'Fira Code', monospace; font-size: 15px; line-height: 1.6; }
 
-        /* Dashboard Items */
+        /* Dashboard & Icons */
         .item-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -45,130 +38,41 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            transition: all 0.2s;
             cursor: pointer;
         }
+        .item-name { font-size: 11px; font-weight: 600; margin-top: 10px; color: #e6edf3; }
+        .icon-svg { width: 40px; height: 40px; }
 
-        .item-card:active {
-            transform: scale(0.95);
-            background: #1c2128;
+        /* Editor */
+        .editor-container { position: relative; flex: 1; background: #0d1117; overflow: hidden; }
+        #code-input, #backdrop {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 20px; box-sizing: border-box; white-space: pre; overflow: auto;
         }
+        #code-input { background: transparent; color: #e6edf3; z-index: 2; outline: none; resize: none; }
+        #backdrop { color: transparent; z-index: 1; pointer-events: none; }
+        .match { background-color: var(--gold-bg); border-bottom: 2px solid var(--gold); color: transparent; }
 
-        .item-name {
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 10px;
-            color: #e6edf3;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+        /* Save Button State */
+        #btn-save:disabled { background-color: #30363d; color: #8b949e; opacity: 0.6; cursor: not-allowed; }
 
-        /* SVG Icons */
-        .icon-svg {
-            width: 40px;
-            height: 40px;
-        }
-
-        /* Shake & Delete */
+        /* Shaking & Delete */
         .is-shaking { animation: shake 0.2s infinite; border-color: #f85149; }
-        @keyframes shake {
-            0% { transform: rotate(-1deg); }
-            50% { transform: rotate(1deg); }
-            100% { transform: rotate(-1deg); }
-        }
-        .btn-del {
-            position: absolute; top: -8px; right: -8px;
-            width: 22px; height: 22px; background: #f85149;
-            color: white; border-radius: 50%; display: none;
-            align-items: center; justify-content: center; font-size: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
+        @keyframes shake { 0% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } 100% { transform: rotate(-1deg); } }
+        .btn-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #f85149; color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 10px; }
         .is-shaking .btn-del { display: flex; }
 
-        /* Editor Styles */
-        .editor-container {
-            position: relative;
-            flex: 1;
-            background: #0d1117;
-            overflow: hidden;
-        }
-
-        #code-input, #backdrop {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            padding: 20px;
-            margin: 0;
-            border: none;
-            box-sizing: border-box;
-            white-space: pre;
-            word-wrap: normal;
-            overflow: auto;
-        }
-
-        #code-input {
-            background: transparent;
-            color: #e6edf3;
-            caret-color: #fff;
-            z-index: 2;
-            outline: none;
-            resize: none;
-        }
-
-        #backdrop {
-            color: transparent;
-            z-index: 1;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        .match {
-            background-color: var(--gold-bg);
-            border-bottom: 2px solid var(--gold);
-            color: transparent;
-            border-radius: 2px;
-        }
-
-        .search-area {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            background: #0d1117;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 4px 12px;
-        }
-
-        .toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: #fff; color: #000; padding: 10px 20px; border-radius: 20px;
-            font-size: 12px; font-weight: bold; transition: 0.3s; z-index: 5000;
-        }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; z-index: 5000; }
         .toast.active { transform: translateX(-50%) translateY(0); }
 
-        #btn-save:disabled {
-            background-color: #30363d;
-            color: #8b949e;
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        /* Loading Animation */
+        .loader { width: 20px; height: 20px; border: 3px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- Auth UI -->
+    <!-- Auth UI (เหมือนเดิม) -->
     <div id="auth-ui" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
         <div class="w-full max-w-[300px]">
             <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic">DEVSTUDIO</h1>
@@ -176,14 +80,14 @@
                 <div id="login-box" class="space-y-4">
                     <input type="email" id="l-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                     <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white">LOGIN</button>
+                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs">Login</button>
                     <p class="text-center text-[10px] text-gray-500">New? <span onclick="switchAuth('reg')" class="text-blue-400 cursor-pointer underline">Register</span></p>
                 </div>
                 <div id="reg-box" class="space-y-4 hidden">
                     <input type="text" id="r-name" placeholder="Name" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                     <input type="email" id="r-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                     <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white">SIGN UP</button>
+                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs">Sign Up</button>
                     <p class="text-center text-[10px] text-gray-500">Have account? <span onclick="switchAuth('login')" class="text-blue-400 cursor-pointer underline">Login</span></p>
                 </div>
             </div>
@@ -192,24 +96,29 @@
 
     <!-- Header -->
     <header class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-        <span class="text-blue-500 font-bold text-sm tracking-tighter">DS COMPACT</span>
-        <button onclick="logout()" class="text-[9px] font-bold text-red-400 uppercase">Logout</button>
+        <span class="text-blue-500 font-bold text-sm tracking-tighter">DS AI CORE</span>
+        <div class="flex items-center gap-3">
+            <button onclick="openAIWizard()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-black px-3 py-1 rounded-full text-[9px] font-black italic flex items-center gap-1 shadow-lg shadow-orange-500/20">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> AI GEN
+            </button>
+            <button onclick="logout()" class="text-[9px] font-bold text-red-400 uppercase">Logout</button>
+        </div>
     </header>
 
     <!-- Dashboard -->
-    <main class="p-4" style="height: calc(100vh - 48px); overflow-y: auto;">
+    <main class="p-4 overflow-y-auto" style="height: calc(100vh - 48px);">
         <div id="view-folders">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Folders</h2>
-                <button onclick="openModal('folder')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase">+ New Folder</button>
+                <button onclick="openModal('folder')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">+ FOLDER</button>
             </div>
             <div id="list-folders" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
         </div>
 
         <div id="view-files" class="hidden">
             <div class="flex justify-between items-center mb-6">
-                <button onclick="showHome()" class="text-xs font-bold text-gray-400 hover:text-white">← BACK</button>
-                <button onclick="openModal('file')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase">+ New File</button>
+                <button onclick="showHome()" class="text-xs font-bold text-gray-400">← BACK</button>
+                <button onclick="openModal('file')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">+ FILE</button>
             </div>
             <div id="list-files" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
         </div>
@@ -224,18 +133,53 @@
                 <button id="btn-save" onclick="saveFile()" class="px-4 py-1.5 bg-blue-600 rounded-md text-[10px] font-bold text-white">SAVE</button>
             </div>
         </div>
-
-        <div class="search-area">
-            <div class="search-input-wrapper">
+        <div class="bg-[#161b22] border-b border-[#30363d] px-4 py-2 flex items-center gap-2">
+            <div class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#484f58" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" id="find-input" placeholder="Search and Highlight Gold..." class="bg-transparent border-none text-xs outline-none text-white ml-2 flex-1" oninput="handleInput()">
+                <input type="text" id="find-input" placeholder="Search Gold..." class="bg-transparent border-none text-xs outline-none text-white w-full" oninput="handleInput()">
             </div>
-            <span id="match-count" class="text-[10px] font-bold text-gray-500"></span>
+            <span id="match-count" class="text-[10px] font-bold text-amber-400"></span>
         </div>
-
         <div class="editor-container">
             <div id="backdrop" class="code-font"></div>
             <textarea id="code-input" class="code-font" spellcheck="false" oninput="handleInput()" onscroll="syncScroll()"></textarea>
+        </div>
+    </div>
+
+    <!-- AI Wizard UI -->
+    <div id="ai-wizard" class="fixed inset-0 z-[1500] bg-[#0d1117] hidden flex-col items-center justify-center p-6">
+        <div id="ai-step-1" class="w-full max-w-[300px] space-y-4">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-amber-400/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-400/30">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="#ffcf40"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <h2 class="text-xl font-bold text-white italic">AI BUILDER</h2>
+                <p class="text-[10px] text-gray-500 uppercase mt-1">Configure your new project</p>
+            </div>
+            <div class="space-y-3">
+                <input type="text" id="ai-folder-name" placeholder="Folder Name (e.g., MyProject)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <input type="text" id="ai-file-name" placeholder="File Name (e.g., index.html)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <button onclick="goToAIStep2()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs shadow-lg shadow-blue-600/20">NEXT STEP</button>
+                <button onclick="closeAIWizard()" class="w-full text-xs text-gray-500 font-bold py-2">CANCEL</button>
+            </div>
+        </div>
+
+        <div id="ai-step-2" class="w-full max-w-[350px] space-y-4 hidden flex flex-col h-full py-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span id="ai-target-file" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-bold"></span>
+                </div>
+                <button onclick="closeAIWizard()" class="text-gray-500 text-xs">EXIT</button>
+            </div>
+            <div id="ai-chat-history" class="flex-1 bg-[#161b22] border border-[#30363d] rounded-2xl p-4 overflow-y-auto space-y-4 text-sm scroll-smooth">
+                <div class="text-blue-400 font-medium">AI: สวัสดีครับ! อยากให้ผมเขียนโค้ดอะไรลงในไฟล์นี้ดีครับ? บอกความต้องการมาได้เลย</div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="ai-prompt" placeholder="เช่น: สร้างหน้า Login สวยๆ..." class="flex-1 bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <button id="btn-ai-send" onclick="generateWithAI()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -255,7 +199,7 @@
             <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm mb-4">
             <div class="flex gap-2">
                 <button onclick="closeModal()" class="flex-1 text-xs text-gray-400">CANCEL</button>
-                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs">CREATE</button>
+                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs uppercase">Create</button>
             </div>
         </div>
     </div>
@@ -263,25 +207,111 @@
     <div id="toast" class="toast">NOTIFICATION</div>
 
 <script>
+    const apiKey = ""; // Canvas will provide this automatically
     const KEY = 'ds_gold_db';
     let db = JSON.parse(localStorage.getItem(KEY)) || { users: {} };
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
-    let curFolder = null, curFile = null, shakeTimer;
-    let originalContent = "";
+    let curFolder = null, curFile = null, shakeTimer, originalContent = "";
 
-    // Icons
-    const FOLDER_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#54aeff" fill-opacity="0.2" stroke="#54aeff" stroke-width="2" stroke-linejoin="round"/></svg>`;
-    const FILE_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" fill="#2f81f7" fill-opacity="0.15" stroke="#2f81f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 2V9H20" stroke="#2f81f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const FOLDER_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none"><path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#54aeff" fill-opacity="0.2" stroke="#54aeff" stroke-width="2" stroke-linejoin="round"/></svg>`;
+    const FILE_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" fill="#2f81f7" fill-opacity="0.15" stroke="#2f81f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 2V9H20" stroke="#2f81f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-    // Templates for different file types
-    const TEMPLATES = {
-        html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>New Project</title>\n</head>\n<body>\n    <h1>Hello from HTML</h1>\n</body>\n</html>`,
-        js: `// JavaScript File\nconsole.log("Hello, World!");\n\nfunction init() {\n    // Your logic here\n}\n\ninit();`,
-        jsx: `// React Component\nconst App = () => {\n  return (\n    <div className="p-10 text-center">\n      <h1 className="text-3xl font-bold text-blue-600">Hello React!</h1>\n      <p className="mt-4">Build something awesome.</p>\n    </div>\n  );\n};\n\nexport default App;`,
-        default: `<!DOCTYPE html>\n<html>\n<body>\n    <h1>New File Created</h1>\n</body>\n</html>`
-    };
+    // --- AI Wizard Logic ---
+    function openAIWizard() {
+        document.getElementById('ai-wizard').classList.replace('hidden', 'flex');
+        document.getElementById('ai-step-1').classList.remove('hidden');
+        document.getElementById('ai-step-2').classList.add('hidden');
+    }
+    function closeAIWizard() { document.getElementById('ai-wizard').classList.replace('flex', 'hidden'); }
 
-    // Auth Logic
+    function goToAIStep2() {
+        const folder = document.getElementById('ai-folder-name').value;
+        const file = document.getElementById('ai-file-name').value;
+        if(!folder || !file) return notify("Please fill folder and file name");
+        
+        document.getElementById('ai-target-file').textContent = `${folder} / ${file}`;
+        document.getElementById('ai-step-1').classList.add('hidden');
+        document.getElementById('ai-step-2').classList.remove('hidden');
+    }
+
+    async function generateWithAI() {
+        const promptInput = document.getElementById('ai-prompt');
+        const userPrompt = promptInput.value;
+        const fileName = document.getElementById('ai-file-name').value;
+        const chatHistory = document.getElementById('ai-chat-history');
+        const sendBtn = document.getElementById('btn-ai-send');
+        
+        if(!userPrompt) return;
+
+        // UI Feedback
+        promptInput.value = "";
+        const userMsg = document.createElement('div');
+        userMsg.className = "text-right text-gray-400";
+        userMsg.textContent = `You: ${userPrompt}`;
+        chatHistory.appendChild(userMsg);
+        
+        const aiMsg = document.createElement('div');
+        aiMsg.className = "text-blue-400 flex items-center gap-2";
+        aiMsg.innerHTML = `AI: <span class="loader"></span> Generating code...`;
+        chatHistory.appendChild(aiMsg);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        sendBtn.disabled = true;
+
+        const systemPrompt = `You are a professional code generator. 
+        Create code for a file named "${fileName}". 
+        Return ONLY the raw code content. 
+        Do not include markdown code blocks like \`\`\`html or \`\`\`. 
+        If it's .html, include Tailwind CDN for styling.
+        If it's .jsx, use React and Tailwind classes.`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                })
+            });
+
+            const data = await response.json();
+            let generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || "// Failed to generate";
+            
+            // Clean markdown blocks if AI ignored instructions
+            generatedCode = generatedCode.replace(/^```[a-z]*\n/i, "").replace(/\n```$/i, "");
+
+            aiMsg.innerHTML = `AI: โค้ดเสร็จแล้วครับ! กำลังสร้างไฟล์และเปิดเครื่องมือแก้ไข...`;
+            
+            // Auto Create Process
+            setTimeout(() => {
+                const folderName = document.getElementById('ai-folder-name').value;
+                const u = db.users[session.email];
+                
+                // 1. Find or Create Folder
+                let fIdx = u.folders.findIndex(f => f.name === folderName);
+                if(fIdx === -1) {
+                    u.folders.push({ name: folderName, files: [] });
+                    fIdx = u.folders.length - 1;
+                }
+                
+                // 2. Create File
+                u.folders[fIdx].files.push({ name: fileName, content: generatedCode });
+                saveDB();
+                
+                // 3. Open Editor
+                curFolder = fIdx;
+                closeAIWizard();
+                renderFiles(); // Update dash background
+                openEditor(u.folders[fIdx].files.length - 1);
+            }, 1500);
+
+        } catch (err) {
+            aiMsg.innerHTML = `AI: Error - ขออภัยครับ ระบบขัดข้อง ลองใหม่อีกครั้ง`;
+            sendBtn.disabled = false;
+        }
+    }
+
+    // --- Existing Core Logic (Auth, Dash, Editor) ---
     function switchAuth(t) {
         document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
         document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg');
@@ -305,7 +335,6 @@
     }
     function logout() { localStorage.removeItem('ds_session'); location.reload(); }
 
-    // Dashboard Logic
     function showHome() {
         document.getElementById('view-folders').classList.remove('hidden');
         document.getElementById('view-files').classList.add('hidden');
@@ -322,23 +351,12 @@
     function createItem(id, name, type) {
         const el = document.createElement('div'); el.className = "item-card";
         const icon = type === 'folder' ? FOLDER_ICON : FILE_ICON;
-        
-        el.innerHTML = `
-            <div class="btn-del" onclick="deleteItem(event, ${id}, '${type}')">✕</div>
-            ${icon}
-            <div class="item-name">${name}</div>
-        `;
-
+        el.innerHTML = `<div class="btn-del" onclick="deleteItem(event, ${id}, '${type}')">✕</div>${icon}<div class="item-name">${name}</div>`;
         el.onpointerdown = () => shakeTimer = setTimeout(() => el.classList.add('is-shaking'), 800);
         el.onpointerup = el.onpointerleave = () => clearTimeout(shakeTimer);
         el.onclick = () => {
             if(el.classList.contains('is-shaking')) return el.classList.remove('is-shaking');
-            if(type === 'folder') { 
-                curFolder = id; 
-                document.getElementById('view-folders').classList.add('hidden'); 
-                document.getElementById('view-files').classList.remove('hidden'); 
-                renderFiles(); 
-            }
+            if(type === 'folder') { curFolder = id; document.getElementById('view-folders').classList.add('hidden'); document.getElementById('view-files').classList.remove('hidden'); renderFiles(); }
             else openEditor(id);
         };
         return el;
@@ -350,34 +368,22 @@
         saveDB(); type === 'folder' ? renderFolders() : renderFiles();
     }
 
-    // Editor & Logic
     function openEditor(id) {
         curFile = id;
         const file = db.users[session.email].folders[curFolder].files[id];
         const input = document.getElementById('code-input');
         input.value = file.content;
         originalContent = file.content;
-        
         document.getElementById('find-input').value = "";
         document.getElementById('editor-ui').classList.replace('hidden', 'flex');
-        
-        checkSaveState();
-        applyHighlight();
+        checkSaveState(); applyHighlight();
     }
 
-    function handleInput() {
-        checkSaveState();
-        applyHighlight();
-    }
-
+    function handleInput() { checkSaveState(); applyHighlight(); }
     function checkSaveState() {
         const input = document.getElementById('code-input');
         const saveBtn = document.getElementById('btn-save');
-        if (input.value !== originalContent) {
-            saveBtn.disabled = false;
-        } else {
-            saveBtn.disabled = true;
-        }
+        saveBtn.disabled = (input.value === originalContent);
     }
 
     function applyHighlight() {
@@ -385,19 +391,12 @@
         const backdrop = document.getElementById('backdrop');
         const find = document.getElementById('find-input').value;
         const countEl = document.getElementById('match-count');
-        
         let content = input.value;
-
         if (find) {
-            const escapedFind = find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escapedFind})`, 'gi');
+            const regex = new RegExp(`(${find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
             const matches = content.match(regex);
-            countEl.textContent = matches ? `${matches.length} FOUND` : "0 FOUND";
-            countEl.style.color = matches ? "var(--gold)" : "#484f58";
-            
-            const html = content
-                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-                .replace(regex, '<span class="match">$1</span>');
+            countEl.textContent = matches ? `${matches.length} MATCHES` : "";
+            const html = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(regex, '<span class="match">$1</span>');
             backdrop.innerHTML = html + (content.endsWith('\n') ? '\n' : '');
         } else {
             backdrop.innerHTML = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + (content.endsWith('\n') ? '\n' : '');
@@ -405,26 +404,19 @@
         }
         syncScroll();
     }
-
-    function syncScroll() {
+    function syncScroll() { 
         const input = document.getElementById('code-input');
         const backdrop = document.getElementById('backdrop');
         backdrop.scrollTop = input.scrollTop;
         backdrop.scrollLeft = input.scrollLeft;
     }
-
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
-    
     function saveFile() {
-        const codeInput = document.getElementById('code-input');
-        const currentContent = codeInput.value;
-        db.users[session.email].folders[curFolder].files[curFile].content = currentContent;
-        originalContent = currentContent;
-        saveDB();
-        checkSaveState();
-        notify("File Saved!");
+        const val = document.getElementById('code-input').value;
+        db.users[session.email].folders[curFolder].files[curFile].content = val;
+        originalContent = val;
+        saveDB(); checkSaveState(); notify("Saved successfully");
     }
-
     function runProject() {
         const blob = new Blob([document.getElementById('code-input').value], {type: 'text/html'});
         document.getElementById('preview-frame').src = URL.createObjectURL(blob);
@@ -432,36 +424,18 @@
     }
     function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
 
-    // Modal UI with Smart Template Support
     function openModal(type) {
         document.getElementById('modal-title').textContent = `New ${type}`;
         document.getElementById('modal-input').value = '';
         document.getElementById('modal-ui').classList.replace('hidden', 'flex');
-        
         document.getElementById('modal-confirm').onclick = () => {
-            const val = document.getElementById('modal-input').value; 
-            if(!val) return;
-            
+            const val = document.getElementById('modal-input').value; if(!val) return;
             const u = db.users[session.email];
-            if(type === 'folder') {
-                u.folders.push({ name: val, files: [] });
-            } else {
-                // Smart Template Selection based on extension
-                let template = TEMPLATES.default;
-                const lowerName = val.toLowerCase();
-                if (lowerName.endsWith('.html')) template = TEMPLATES.html;
-                else if (lowerName.endsWith('.js')) template = TEMPLATES.js;
-                else if (lowerName.endsWith('.jsx') || lowerName.endsWith('.react')) template = TEMPLATES.jsx;
-                
-                u.folders[curFolder].files.push({ name: val, content: template });
-            }
-            
-            saveDB(); 
-            type === 'folder' ? renderFolders() : renderFiles(); 
-            closeModal();
+            if(type === 'folder') u.folders.push({ name: val, files: [] });
+            else u.folders[curFolder].files.push({ name: val, content: '<h1>New File</h1>' });
+            saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal();
         };
     }
-    
     function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); }
     function notify(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
     function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
