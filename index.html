@@ -273,6 +273,14 @@
     const FOLDER_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#54aeff" fill-opacity="0.2" stroke="#54aeff" stroke-width="2" stroke-linejoin="round"/></svg>`;
     const FILE_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" fill="#2f81f7" fill-opacity="0.15" stroke="#2f81f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 2V9H20" stroke="#2f81f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
+    // Templates for different file types
+    const TEMPLATES = {
+        html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>New Project</title>\n</head>\n<body>\n    <h1>Hello from HTML</h1>\n</body>\n</html>`,
+        js: `// JavaScript File\nconsole.log("Hello, World!");\n\nfunction init() {\n    // Your logic here\n}\n\ninit();`,
+        jsx: `// React Component\nconst App = () => {\n  return (\n    <div className="p-10 text-center">\n      <h1 className="text-3xl font-bold text-blue-600">Hello React!</h1>\n      <p className="mt-4">Build something awesome.</p>\n    </div>\n  );\n};\n\nexport default App;`,
+        default: `<!DOCTYPE html>\n<html>\n<body>\n    <h1>New File Created</h1>\n</body>\n</html>`
+    };
+
     // Auth Logic
     function switchAuth(t) {
         document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
@@ -424,19 +432,36 @@
     }
     function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
 
-    // Modal UI
+    // Modal UI with Smart Template Support
     function openModal(type) {
         document.getElementById('modal-title').textContent = `New ${type}`;
         document.getElementById('modal-input').value = '';
         document.getElementById('modal-ui').classList.replace('hidden', 'flex');
+        
         document.getElementById('modal-confirm').onclick = () => {
-            const val = document.getElementById('modal-input').value; if(!val) return;
+            const val = document.getElementById('modal-input').value; 
+            if(!val) return;
+            
             const u = db.users[session.email];
-            if(type === 'folder') u.folders.push({ name: val, files: [] });
-            else u.folders[curFolder].files.push({ name: val, content: '<h1>New File</h1>' });
-            saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal();
+            if(type === 'folder') {
+                u.folders.push({ name: val, files: [] });
+            } else {
+                // Smart Template Selection based on extension
+                let template = TEMPLATES.default;
+                const lowerName = val.toLowerCase();
+                if (lowerName.endsWith('.html')) template = TEMPLATES.html;
+                else if (lowerName.endsWith('.js')) template = TEMPLATES.js;
+                else if (lowerName.endsWith('.jsx') || lowerName.endsWith('.react')) template = TEMPLATES.jsx;
+                
+                u.folders[curFolder].files.push({ name: val, content: template });
+            }
+            
+            saveDB(); 
+            type === 'folder' ? renderFolders() : renderFiles(); 
+            closeModal();
         };
     }
+    
     function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); }
     function notify(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
     function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
