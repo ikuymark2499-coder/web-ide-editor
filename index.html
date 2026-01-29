@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Gold AI Core - User API</title>
+    <title>DevStudio Gold AI Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
@@ -16,30 +16,10 @@
             --gold-bg: rgba(255, 207, 64, 0.4);
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg); 
-            color: #c9d1d9; 
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: #c9d1d9; margin: 0; height: 100vh; overflow: hidden; }
         .code-font { font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.6; }
 
-        .item-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.2s; }
         .item-card:hover { border-color: #58a6ff; }
         .item-name { font-size: 11px; font-weight: 600; margin-top: 10px; color: #e6edf3; text-align: center; word-break: break-all; }
         .icon-svg { width: 40px; height: 40px; }
@@ -52,6 +32,9 @@
         }
         #code-input { background: transparent; color: #e6edf3; z-index: 2; outline: none; resize: none; caret-color: white; }
         #backdrop { color: transparent; z-index: 1; pointer-events: none; }
+        
+        /* Gold Search Highlight */
+        .match { background-color: var(--gold-bg); border-bottom: 2px solid var(--gold); color: transparent; border-radius: 2px; }
 
         .btn-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #f85149; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; z-index: 10; opacity: 0; transition: 0.2s; }
         .item-card:hover .btn-del { opacity: 1; }
@@ -68,19 +51,19 @@
     <!-- Auth UI -->
     <div id="auth-ui" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
         <div class="w-full max-w-[300px]">
-            <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic">DEVSTUDIO</h1>
+            <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic tracking-tighter">DEVSTUDIO</h1>
             <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-3xl">
                 <div id="login-box" class="space-y-4">
                     <input type="email" id="l-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                     <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs">Login</button>
+                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs shadow-lg shadow-blue-600/20">Login</button>
                     <p class="text-center text-[10px] text-gray-500">New? <span onclick="switchAuth('reg')" class="text-blue-400 cursor-pointer underline">Register</span></p>
                 </div>
                 <div id="reg-box" class="space-y-4 hidden">
                     <input type="text" id="r-name" placeholder="Name" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                     <input type="email" id="r-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
                     <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs">Sign Up</button>
+                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs shadow-lg shadow-blue-600/20">Sign Up</button>
                     <p class="text-center text-[10px] text-gray-500">Have account? <span onclick="switchAuth('login')" class="text-blue-400 cursor-pointer underline">Login</span></p>
                 </div>
             </div>
@@ -89,9 +72,9 @@
 
     <!-- Header -->
     <header class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-        <span class="text-blue-500 font-bold text-sm tracking-tighter">DS AI CORE</span>
+        <span class="text-blue-500 font-bold text-sm italic tracking-tighter">DS AI CORE</span>
         <div class="flex items-center gap-3">
-            <button onclick="openAIWizard()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-black px-3 py-1 rounded-full text-[9px] font-black italic flex items-center gap-1 shadow-lg shadow-orange-500/20">
+            <button onclick="openAIWizard()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-black px-3 py-1 rounded-full text-[9px] font-black italic flex items-center gap-1 shadow-lg shadow-orange-500/20 transition-transform active:scale-95">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> AI GEN
             </button>
             <button onclick="logout()" class="text-[9px] font-bold text-red-400 uppercase">Logout</button>
@@ -117,49 +100,17 @@
         </div>
     </main>
 
-    <!-- AI Wizard (New Step-by-Step Logic) -->
-    <div id="ai-wizard" class="fixed inset-0 z-[1500] bg-[#0d1117] hidden flex-col items-center justify-center p-6">
-        
-        <!-- Step 0: User API Key Setup -->
-        <div id="ai-step-0" class="w-full max-w-[300px] space-y-4">
-            <h2 class="text-xl font-bold text-blue-400 italic text-center uppercase tracking-tighter">API Key Required</h2>
-            <p class="text-[10px] text-gray-500 text-center">Please enter your Google Gemini API Key to proceed.</p>
-            <input type="password" id="user-api-key" placeholder="Paste your API Key here" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-xs">
-            <button id="btn-verify-key" onclick="verifyUserKey()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs">VERIFY KEY</button>
-            <p class="text-center"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-500 underline">How to get a Key?</a></p>
-            <button onclick="closeAIWizard()" class="w-full text-xs text-gray-500">CANCEL</button>
-        </div>
-
-        <!-- Step 1: Project Info -->
-        <div id="ai-step-1" class="w-full max-w-[300px] space-y-4 hidden">
-            <h2 class="text-xl font-bold text-white italic text-center">PROJECT SETUP</h2>
-            <input type="text" id="ai-folder-name" placeholder="Folder Name" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-            <input type="text" id="ai-file-name" placeholder="File Name (e.g. index.html)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-            <button onclick="goToAIStep2()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs">PROCEED TO CHAT</button>
-            <button onclick="backToStep0()" class="w-full text-xs text-gray-500">BACK</button>
-        </div>
-
-        <!-- Step 2: AI Chat -->
-        <div id="ai-step-2" class="w-full max-w-[400px] space-y-4 hidden flex flex-col h-[85vh]">
-            <div class="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 flex-1 overflow-y-auto space-y-4" id="ai-chat-history">
-                <p class="text-blue-400 text-xs">AI Core: <span id="target-info" class="text-white font-bold"></span> พร้อมสร้างโค้ดแล้วครับ คุณต้องการให้ทำอะไร?</p>
-            </div>
-            <div class="flex gap-2">
-                <input type="text" id="ai-prompt" placeholder="เช่น สร้างเครื่องคิดเลขสีพาสเทล..." class="flex-1 bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                <button id="btn-ai-send" onclick="generateWithAI()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- UI Components (Editor, Preview, Modals) - Same as previous version but kept for completeness -->
+    <!-- Editor UI -->
     <div id="editor-ui" class="fixed inset-0 z-[500] bg-[#0d1117] hidden flex-col">
         <div class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-            <button onclick="closeEditor()" class="text-[10px] font-bold text-gray-500">EXIT</button>
+            <div class="flex items-center gap-3">
+                <button onclick="closeEditor()" class="text-[10px] font-bold text-gray-500">EXIT</button>
+                <!-- Search Box -->
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Find..." class="bg-[#0d1117] border border-[#30363d] rounded-md px-2 py-1 text-[10px] outline-none focus:border-amber-400 text-amber-100 w-24 sm:w-40">
+            </div>
             <div class="flex gap-2">
-                <button onclick="runProject()" class="px-4 py-1.5 bg-emerald-600 rounded-md text-[10px] font-bold text-white">RUN</button>
-                <button onclick="saveFile()" class="px-4 py-1.5 bg-blue-600 rounded-md text-[10px] font-bold text-white">SAVE</button>
+                <button onclick="runProject()" class="px-3 py-1.5 bg-emerald-600 rounded-md text-[9px] font-bold text-white uppercase">Run</button>
+                <button id="btn-save" onclick="saveFile()" class="px-3 py-1.5 bg-blue-600 rounded-md text-[9px] font-bold text-white uppercase disabled:bg-gray-700 disabled:text-gray-400" disabled>Save</button>
             </div>
         </div>
         <div class="editor-container">
@@ -168,14 +119,51 @@
         </div>
     </div>
 
-    <div id="preview-ui" class="fixed inset-0 z-[2000] bg-white hidden flex-col">
-        <div class="h-12 bg-gray-100 border-b flex items-center justify-between px-4">
-            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Live Output</span>
-            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold">STOP</button>
+    <!-- AI Wizard -->
+    <div id="ai-wizard" class="fixed inset-0 z-[1500] bg-[#0d1117] hidden flex-col items-center justify-center p-6">
+        <!-- Step 0: User Key -->
+        <div id="ai-step-0" class="w-full max-w-[300px] space-y-4">
+            <h2 class="text-xl font-bold text-blue-500 italic text-center uppercase">User API Key</h2>
+            <p class="text-[10px] text-gray-500 text-center">Enter your Google Gemini API Key to enable AI features.</p>
+            <input type="password" id="user-api-key" placeholder="API Key..." class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-xs">
+            <button id="btn-verify-key" onclick="verifyUserKey()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs">VERIFY KEY</button>
+            <p class="text-center"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 underline italic">Get your free key here</a></p>
+            <button onclick="closeAIWizard()" class="w-full text-xs text-gray-500">CANCEL</button>
         </div>
-        <iframe id="preview-frame" class="flex-1 w-full border-none"></iframe>
+
+        <!-- Step 1: Project Info -->
+        <div id="ai-step-1" class="w-full max-w-[300px] space-y-4 hidden">
+            <h2 class="text-xl font-bold text-white italic text-center">PROJECT SETUP</h2>
+            <input type="text" id="ai-folder-name" placeholder="Folder Name" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+            <input type="text" id="ai-file-name" placeholder="File Name (e.g. game.html)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+            <button onclick="goToAIStep2()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs">PROCEED</button>
+            <button onclick="backToStep0()" class="w-full text-xs text-gray-500">BACK</button>
+        </div>
+
+        <!-- Step 2: Chat -->
+        <div id="ai-step-2" class="w-full max-w-[400px] space-y-4 hidden flex flex-col h-[85vh]">
+            <div class="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 flex-1 overflow-y-auto space-y-4" id="ai-chat-history">
+                <p class="text-blue-400 text-xs">AI Core: ระบุความต้องการเพื่อสร้างไฟล์ <span id="target-info" class="text-white font-bold underline"></span></p>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="ai-prompt" placeholder="สร้างเว็บไซต์..." class="flex-1 bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
+                <button id="btn-ai-send" onclick="generateWithAI()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
     </div>
 
+    <!-- Runner -->
+    <div id="preview-ui" class="fixed inset-0 z-[2000] bg-white hidden flex-col">
+        <div class="h-12 bg-gray-900 flex items-center justify-between px-4">
+            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Live Output</span>
+            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1 rounded-full text-[9px] font-black">STOP</button>
+        </div>
+        <iframe id="preview-frame" class="flex-1 w-full border-none bg-white"></iframe>
+    </div>
+
+    <!-- Modal -->
     <div id="modal-ui" class="fixed inset-0 z-[3000] bg-black/80 hidden items-center justify-center p-6">
         <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-3xl w-full max-w-[280px]">
             <p id="modal-title" class="text-[10px] font-bold text-gray-500 uppercase mb-4 text-center"></p>
@@ -190,183 +178,189 @@
     <div id="toast" class="toast">NOTIFICATION</div>
 
 <script>
-    let userDefinedKey = localStorage.getItem('user_gemini_key') || "";
+    let userKey = localStorage.getItem('user_api_key') || "";
     const KEY = 'ds_gold_db';
     let db = JSON.parse(localStorage.getItem(KEY)) || { users: {} };
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
-    let curFolder = null, curFile = null;
+    let curFolder = null, curFile = null, lastSavedCode = "";
 
     const FOLDER_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none"><path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#54aeff" fill-opacity="0.2" stroke="#54aeff" stroke-width="2"/></svg>`;
     const FILE_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" fill="#2f81f7" fill-opacity="0.15" stroke="#2f81f7" stroke-width="2"/><path d="M13 2V9H20" stroke="#2f81f7" stroke-width="2"/></svg>`;
 
-    // --- User API Key Logic ---
+    // --- Template Logic (Feature 1) ---
+    function getTemplate(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const templates = {
+            html: '<!DOCTYPE html>\n<html>\n<head>\n  <title>New Page</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>',
+            css: 'body {\n  margin: 0;\n  padding: 0;\n  background: #000;\n}',
+            js: 'console.log("Hello from Javascript!");\n\nfunction init() {\n\n}',
+            py: 'def main():\n    print("Hello from Python!")\n\nif __name__ == "__main__":\n    main()',
+            json: '{\n  "name": "project",\n  "version": "1.0.0"\n}',
+            php: '<?php\n  echo "Hello from PHP";\n?>'
+        };
+        return templates[ext] || '// Start coding here...';
+    }
+
+    // --- Search Logic (Feature 3) ---
+    function handleSearch() {
+        const term = document.getElementById('search-input').value;
+        const input = document.getElementById('code-input');
+        const backdrop = document.getElementById('backdrop');
+        const content = input.value;
+        
+        if (!term) {
+            applyHighlight();
+            return;
+        }
+
+        const regex = new RegExp(`(${term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+        const highlighted = content
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(regex, '<span class="match">$1</span>');
+        
+        backdrop.innerHTML = highlighted;
+
+        // Find first occurrence and scroll
+        const index = content.toLowerCase().indexOf(term.toLowerCase());
+        if (index !== -1) {
+            const beforeMatch = content.substring(0, index);
+            const lineCount = beforeMatch.split('\n').length;
+            const lineHeight = 22.4; // 14px * 1.6 line-height
+            input.scrollTop = (lineCount - 1) * lineHeight - 50;
+            syncScroll();
+        }
+    }
+
+    // --- AI User API Logic ---
     async function verifyUserKey() {
-        const keyInput = document.getElementById('user-api-key').value.trim();
+        const inputKey = document.getElementById('user-api-key').value.trim();
         const btn = document.getElementById('btn-verify-key');
-        if(!keyInput) return notify("Please enter a key");
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="loader"></span> VERIFYING...`;
-
+        if (!inputKey) return notify("Please enter a key");
+        btn.disabled = true; btn.innerHTML = `<span class="loader"></span> VERIFYING...`;
         try {
-            // Test key with a simple request
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${keyInput}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${inputKey}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: "hi" }] }] })
             });
-            
-            if(!res.ok) throw new Error("Invalid API Key");
-            
-            userDefinedKey = keyInput;
-            localStorage.setItem('user_gemini_key', keyInput);
+            if (!res.ok) throw new Error("Invalid Key");
+            userKey = inputKey; localStorage.setItem('user_api_key', inputKey);
             notify("✅ Key Verified!");
-            
-            // Move to Step 1
             document.getElementById('ai-step-0').classList.add('hidden');
             document.getElementById('ai-step-1').classList.remove('hidden');
-        } catch (err) {
-            notify("❌ API Key Error: " + err.message);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = "VERIFY KEY";
-        }
+        } catch (e) { notify("❌ Error: " + e.message); }
+        finally { btn.disabled = false; btn.textContent = "VERIFY KEY"; }
     }
 
     function openAIWizard() {
         document.getElementById('ai-wizard').classList.replace('hidden', 'flex');
-        const savedKey = localStorage.getItem('user_gemini_key');
-        
-        // If key exists, skip step 0
-        if(savedKey) {
-            userDefinedKey = savedKey;
-            document.getElementById('user-api-key').value = savedKey;
+        if (userKey) {
             document.getElementById('ai-step-0').classList.add('hidden');
             document.getElementById('ai-step-1').classList.remove('hidden');
+            document.getElementById('user-api-key').value = userKey;
         } else {
             document.getElementById('ai-step-0').classList.remove('hidden');
             document.getElementById('ai-step-1').classList.add('hidden');
         }
     }
-
-    function backToStep0() {
-        document.getElementById('ai-step-1').classList.add('hidden');
-        document.getElementById('ai-step-0').classList.remove('hidden');
-    }
-
+    function backToStep0() { document.getElementById('ai-step-1').classList.add('hidden'); document.getElementById('ai-step-0').classList.remove('hidden'); }
     function goToAIStep2() {
-        const folder = document.getElementById('ai-folder-name').value;
-        const file = document.getElementById('ai-file-name').value;
-        if(!folder || !file) return notify("กรุณากรอกข้อมูลให้ครบ");
-        
-        document.getElementById('target-info').textContent = `[${folder} / ${file}]`;
-        document.getElementById('ai-step-1').classList.add('hidden');
-        document.getElementById('ai-step-2').classList.remove('hidden');
+        if(!document.getElementById('ai-folder-name').value || !document.getElementById('ai-file-name').value) return notify("กรุณากรอกข้อมูลให้ครบ");
+        document.getElementById('target-info').textContent = document.getElementById('ai-file-name').value;
+        document.getElementById('ai-step-1').classList.add('hidden'); document.getElementById('ai-step-2').classList.remove('hidden');
     }
 
     async function generateWithAI() {
-        const promptInput = document.getElementById('ai-prompt');
-        const userPrompt = promptInput.value;
+        const pInput = document.getElementById('ai-prompt');
+        const userPrompt = pInput.value;
         const fileName = document.getElementById('ai-file-name').value;
-        const chatHistory = document.getElementById('ai-chat-history');
+        const chat = document.getElementById('ai-chat-history');
         const sendBtn = document.getElementById('btn-ai-send');
-        
         if(!userPrompt) return;
-        
-        const aiMsg = document.createElement('div');
-        aiMsg.className = "bg-[#0d1117] border border-[#30363d] p-3 rounded-xl text-xs space-y-2";
-        aiMsg.innerHTML = `<p class="text-blue-400 font-bold">SYSTEM</p>
-                           <p class="text-gray-400 italic"><span class="loader"></span> กำลังสร้างโค้ดสำหรับ ${fileName} โดยใช้ API Key ของคุณ...</p>`;
-        chatHistory.appendChild(aiMsg);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-        sendBtn.disabled = true;
 
-        const systemPrompt = `Return ONLY raw source code for "${fileName}". No backticks. Use Tailwind for styling. Mobile friendly.`;
+        const msg = document.createElement('div');
+        msg.className = "bg-[#0d1117] border border-[#30363d] p-3 rounded-xl text-[10px]";
+        msg.innerHTML = `<p class="text-blue-400 font-bold mb-1 italic">GEN ENGINE</p><p class="text-gray-400"><span class="loader"></span> AI กำลังเขียนโค้ดไฟล์ ${fileName} ด้วย Key ของคุณ...</p>`;
+        chat.appendChild(msg); chat.scrollTop = chat.scrollHeight; sendBtn.disabled = true;
 
-        async function callGemini(retries = 3) {
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userDefinedKey}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userPrompt }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
-                });
-                
-                if(!response.ok) {
-                    const errorJson = await response.json();
-                    throw new Error(errorJson.error?.message || "API Error");
-                }
-                
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text;
-            } catch (err) {
-                if(retries > 0) return callGemini(retries - 1);
-                throw err;
-            }
-        }
+        const systemPrompt = `Generate ONLY valid code for "${fileName}". No backticks. No markdown. Use Tailwind for HTML.`;
 
         try {
-            let code = await callGemini();
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userKey}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: userPrompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
+            });
+            if(!res.ok) throw new Error("API Limit reached or Invalid Key");
+            const data = await res.json();
+            let code = data.candidates?.[0]?.content?.parts?.[0]?.text;
             code = code.replace(/^```[a-z]*\n/gi, '').replace(/\n```$/g, '').trim();
 
-            const folderName = document.getElementById('ai-folder-name').value;
             const user = db.users[session.email];
+            const folderName = document.getElementById('ai-folder-name').value;
             let fIdx = user.folders.findIndex(f => f.name === folderName);
             if (fIdx === -1) { user.folders.push({ name: folderName, files: [] }); fIdx = user.folders.length - 1; }
-            
             user.folders[fIdx].files.push({ name: fileName, content: code });
             saveDB();
-            
-            aiMsg.innerHTML = `<p class="text-green-400 font-bold">SUCCESS</p><p class="text-gray-300">สร้างไฟล์เรียบร้อยแล้ว! กำลังเปิด Editor...</p>`;
-            
-            setTimeout(() => {
-                curFolder = fIdx;
-                closeAIWizard();
-                renderFiles();
-                openEditor(user.folders[fIdx].files.length - 1);
-                sendBtn.disabled = false;
-                promptInput.value = "";
-            }, 1000);
 
-        } catch (err) {
-            aiMsg.innerHTML = `<p class="text-red-500 font-bold">ERROR</p><p class="text-gray-400">${err.message}</p>`;
+            msg.innerHTML = `<p class="text-green-400 font-bold italic">SUCCESS</p><p class="text-gray-300">สร้างไฟล์สำเร็จ! ระบบกำลังเปิดหน้าแก้ไข...</p>`;
+            setTimeout(() => {
+                curFolder = fIdx; closeAIWizard(); renderFiles();
+                openEditor(user.folders[fIdx].files.length - 1);
+                sendBtn.disabled = false; pInput.value = "";
+            }, 1200);
+        } catch (e) {
+            msg.innerHTML = `<p class="text-red-500 font-bold italic">ERROR</p><p class="text-gray-500">${e.message}</p>`;
             sendBtn.disabled = false;
         }
     }
 
-    // --- Core UI & Management ---
-    function switchAuth(t) {
-        document.getElementById('login-box').classList.toggle('hidden', t !== 'login');
-        document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg');
+    // --- Core logic (Save Feature 2 included) ---
+    function openEditor(id) {
+        curFile = id;
+        const file = db.users[session.email].folders[curFolder].files[id];
+        document.getElementById('code-input').value = file.content;
+        lastSavedCode = file.content;
+        document.getElementById('btn-save').disabled = true; // Feature 2: Start disabled
+        document.getElementById('editor-ui').classList.replace('hidden', 'flex');
+        applyHighlight();
     }
+
+    function handleInput() {
+        const currentCode = document.getElementById('code-input').value;
+        const saveBtn = document.getElementById('btn-save');
+        
+        // Feature 2: Check if code is changed
+        if (currentCode !== lastSavedCode) {
+            saveBtn.disabled = false;
+        } else {
+            saveBtn.disabled = true;
+        }
+        
+        applyHighlight();
+    }
+
+    function saveFile() {
+        const val = document.getElementById('code-input').value;
+        db.users[session.email].folders[curFolder].files[curFile].content = val;
+        lastSavedCode = val;
+        document.getElementById('btn-save').disabled = true; // Feature 2: Disable after save
+        saveDB(); notify("บันทึกแล้ว!");
+    }
+
+    function switchAuth(t) { document.getElementById('login-box').classList.toggle('hidden', t !== 'login'); document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg'); }
     function handleAuth(type) {
         if(type === 'reg') {
             const e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, n = document.getElementById('r-name').value;
             if(!e || !p) return notify("กรอกข้อมูลไม่ครบ");
-            db.users[e] = { name: n, email: e, pass: p, folders: [] };
-            saveDB(); startSession(db.users[e]);
+            db.users[e] = { name: n, email: e, pass: p, folders: [] }; saveDB(); startSession(db.users[e]);
         } else {
             const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-            const u = db.users[e];
-            if(u && u.pass === p) startSession(u); else notify("อีเมลหรือรหัสผ่านผิด");
+            const u = db.users[e]; if(u && u.pass === p) startSession(u); else notify("อีเมลหรือรหัสผ่านผิด");
         }
     }
-    function startSession(u) {
-        session = u; localStorage.setItem('ds_session', JSON.stringify(u));
-        document.getElementById('auth-ui').style.display = 'none';
-        renderFolders();
-    }
+    function startSession(u) { session = u; localStorage.setItem('ds_session', JSON.stringify(u)); document.getElementById('auth-ui').style.display = 'none'; renderFolders(); }
     function logout() { localStorage.removeItem('ds_session'); location.reload(); }
-    function renderFolders() {
-        const list = document.getElementById('list-folders'); list.innerHTML = '';
-        db.users[session.email].folders.forEach((f, i) => list.appendChild(createItem(i, f.name, 'folder')));
-    }
-    function renderFiles() {
-        const list = document.getElementById('list-files'); list.innerHTML = '';
-        db.users[session.email].folders[curFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file')));
-    }
+    function renderFolders() { const list = document.getElementById('list-folders'); list.innerHTML = ''; db.users[session.email].folders.forEach((f, i) => list.appendChild(createItem(i, f.name, 'folder'))); }
+    function renderFiles() { const list = document.getElementById('list-files'); list.innerHTML = ''; db.users[session.email].folders[curFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file'))); }
     function createItem(id, name, type) {
         const el = document.createElement('div'); el.className = "item-card";
         el.innerHTML = `<div class="btn-del" onclick="deleteItem(event, ${id}, '${type}')">✕</div>${type==='folder'?FOLDER_ICON:FILE_ICON}<div class="item-name">${name}</div>`;
@@ -374,8 +368,6 @@
         return el;
     }
     function deleteItem(e, id, type) { e.stopPropagation(); const u = db.users[session.email]; if(type === 'folder') u.folders.splice(id, 1); else u.folders[curFolder].files.splice(id, 1); saveDB(); type === 'folder' ? renderFolders() : renderFiles(); }
-    function openEditor(id) { curFile = id; const file = db.users[session.email].folders[curFolder].files[id]; document.getElementById('code-input').value = file.content; document.getElementById('editor-ui').classList.replace('hidden', 'flex'); applyHighlight(); }
-    function saveFile() { db.users[session.email].folders[curFolder].files[curFile].content = document.getElementById('code-input').value; saveDB(); notify("บันทึกแล้ว!"); }
     function runProject() { const code = document.getElementById('code-input').value; const blob = new Blob([code], {type: 'text/html'}); document.getElementById('preview-frame').src = URL.createObjectURL(blob); document.getElementById('preview-ui').classList.replace('hidden', 'flex'); }
     function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
@@ -383,12 +375,21 @@
     function closeAIWizard() { document.getElementById('ai-wizard').classList.replace('flex', 'hidden'); }
     function applyHighlight() { document.getElementById('backdrop').textContent = document.getElementById('code-input').value; }
     function syncScroll() { document.getElementById('backdrop').scrollTop = document.getElementById('code-input').scrollTop; document.getElementById('backdrop').scrollLeft = document.getElementById('code-input').scrollLeft; }
-    function openModal(type) { document.getElementById('modal-title').textContent = `สร้าง ${type} ใหม่`; document.getElementById('modal-ui').classList.replace('hidden', 'flex'); document.getElementById('modal-confirm').onclick = () => { const val = document.getElementById('modal-input').value; if(!val) return; const u = db.users[session.email]; if(type === 'folder') u.folders.push({ name: val, files: [] }); else u.folders[curFolder].files.push({ name: val, content: '<!-- Start coding -->' }); saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal(); }; }
+    function openModal(type) {
+        document.getElementById('modal-title').textContent = `สร้าง ${type} ใหม่`;
+        document.getElementById('modal-ui').classList.replace('hidden', 'flex');
+        document.getElementById('modal-confirm').onclick = () => {
+            const val = document.getElementById('modal-input').value; if(!val) return;
+            const u = db.users[session.email];
+            if(type === 'folder') u.folders.push({ name: val, files: [] });
+            else u.folders[curFolder].files.push({ name: val, content: getTemplate(val) }); // Feature 1: Use Template
+            saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal();
+        };
+    }
     function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); }
     function notify(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
     function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
-    function handleInput() { applyHighlight(); }
     if(session) startSession(session);
 </script>
 </body>
-                </html>
+</html>
