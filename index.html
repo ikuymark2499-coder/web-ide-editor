@@ -3,44 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DevStudio Gold AI Core</title>
+    <title>DevStudio Gold AI - Premium Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
         
         :root {
             --bg: #0d1117;
             --surface: #161b22;
             --border: #30363d;
             --gold: #ffcf40;
-            --gold-bg: rgba(255, 207, 64, 0.4);
+            --gold-glow: rgba(255, 207, 64, 0.2);
+            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: #c9d1d9; margin: 0; height: 100vh; overflow: hidden; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: #c9d1d9; 
+            margin: 0; 
+            height: 100vh; 
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
         .code-font { font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.6; }
 
-        .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.2s; }
-        .item-card:hover { border-color: #58a6ff; }
-        .item-name { font-size: 11px; font-weight: 600; margin-top: 10px; color: #e6edf3; text-align: center; word-break: break-all; }
-        .icon-svg { width: 40px; height: 40px; }
+        /* Animation & Shadows (Feature 2) */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .item-card { 
+            background: var(--surface); 
+            border: 1px solid var(--border); 
+            border-radius: 16px; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-premium);
+        }
+        
+        .item-card:hover { 
+            border-color: #58a6ff; 
+            transform: translateY(-5px); 
+            background: #1c2128;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(88, 166, 255, 0.1);
+        }
+
+        .item-name { font-size: 11px; font-weight: 500; margin-top: 12px; color: #8b949e; transition: color 0.2s; }
+        .item-card:hover .item-name { color: #e6edf3; }
 
         .editor-container { position: relative; flex: 1; background: #0d1117; overflow: hidden; }
         #code-input, #backdrop {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            padding: 20px; box-sizing: border-box; white-space: pre; overflow: auto;
+            padding: 24px; box-sizing: border-box; white-space: pre; overflow: auto;
             border: none;
         }
-        #code-input { background: transparent; color: #e6edf3; z-index: 2; outline: none; resize: none; caret-color: white; }
+        #code-input { background: transparent; color: #e6edf3; z-index: 2; outline: none; resize: none; caret-color: var(--gold); }
         #backdrop { color: transparent; z-index: 1; pointer-events: none; }
         
-        /* Gold Search Highlight */
-        .match { background-color: var(--gold-bg); border-bottom: 2px solid var(--gold); color: transparent; border-radius: 2px; }
+        .match { background-color: rgba(255, 207, 64, 0.3); border-bottom: 2px solid var(--gold); color: transparent; border-radius: 2px; }
 
-        .btn-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #f85149; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; z-index: 10; opacity: 0; transition: 0.2s; }
+        /* Delete Button */
+        .btn-del { 
+            position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; 
+            background: rgba(248, 81, 73, 0.1); color: #f85149; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 12px; z-index: 10; opacity: 0; transition: 0.3s;
+            border: 1px solid transparent;
+        }
         .item-card:hover .btn-del { opacity: 1; }
+        .btn-del:hover { background: #f85149; color: white; border-radius: 50%; }
 
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; z-index: 5000; }
+        /* Toast & Modals */
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 12px 24px; border-radius: 50px; font-size: 13px; font-weight: 600; transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 5000; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .toast.active { transform: translateX(-50%) translateY(0); }
+
+        .glass-panel {
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
         .loader { width: 14px; height: 14px; border: 2px solid currentColor; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -50,67 +98,80 @@
 
     <!-- Auth UI -->
     <div id="auth-ui" class="fixed inset-0 z-[1000] bg-[#0d1117] flex items-center justify-center p-6">
-        <div class="w-full max-w-[300px]">
-            <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic tracking-tighter">DEVSTUDIO</h1>
-            <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-3xl">
+        <div class="w-full max-w-[320px] fade-in">
+            <h1 class="text-4xl font-black text-blue-500 text-center mb-8 italic tracking-tighter drop-shadow-2xl">DEVSTUDIO</h1>
+            <div class="glass-panel p-8 rounded-[32px] shadow-2xl">
                 <div id="login-box" class="space-y-4">
-                    <input type="email" id="l-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs shadow-lg shadow-blue-600/20">Login</button>
-                    <p class="text-center text-[10px] text-gray-500">New? <span onclick="switchAuth('reg')" class="text-blue-400 cursor-pointer underline">Register</span></p>
+                    <input type="email" id="l-email" placeholder="Email Address" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm focus:border-blue-500 transition-colors">
+                    <input type="password" id="l-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm focus:border-blue-500 transition-colors">
+                    <button onclick="handleAuth('login')" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-bold text-white uppercase text-xs tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95">Login</button>
+                    <p class="text-center text-[10px] text-gray-500 uppercase tracking-widest pt-2">New here? <span onclick="switchAuth('reg')" class="text-blue-400 cursor-pointer hover:underline">Create Account</span></p>
                 </div>
                 <div id="reg-box" class="space-y-4 hidden">
-                    <input type="text" id="r-name" placeholder="Name" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <input type="email" id="r-email" placeholder="Email" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white uppercase text-xs shadow-lg shadow-blue-600/20">Sign Up</button>
-                    <p class="text-center text-[10px] text-gray-500">Have account? <span onclick="switchAuth('login')" class="text-blue-400 cursor-pointer underline">Login</span></p>
+                    <input type="text" id="r-name" placeholder="Full Name" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm focus:border-blue-500 transition-colors">
+                    <input type="email" id="r-email" placeholder="Email Address" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm focus:border-blue-500 transition-colors">
+                    <input type="password" id="r-pass" placeholder="Password" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm focus:border-blue-500 transition-colors">
+                    <button onclick="handleAuth('reg')" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-bold text-white uppercase text-xs tracking-widest transition-all">Join DevStudio</button>
+                    <p class="text-center text-[10px] text-gray-500 uppercase tracking-widest pt-2">Have account? <span onclick="switchAuth('login')" class="text-blue-400 cursor-pointer hover:underline">Sign In</span></p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Header -->
-    <header class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-        <span class="text-blue-500 font-bold text-sm italic tracking-tighter">DS AI CORE</span>
-        <div class="flex items-center gap-3">
-            <button onclick="openAIWizard()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-black px-3 py-1 rounded-full text-[9px] font-black italic flex items-center gap-1 shadow-lg shadow-orange-500/20 transition-transform active:scale-95">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> AI GEN
+    <header class="h-14 bg-[#161b22]/80 backdrop-blur-md border-b border-[#30363d] flex items-center justify-between px-6 z-40 sticky top-0">
+        <span class="text-blue-500 font-black text-sm italic tracking-tighter">DS AI CORE</span>
+        <div class="flex items-center gap-4">
+            <button onclick="openAIWizard()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-black px-4 py-1.5 rounded-full text-[10px] font-black italic flex items-center gap-2 shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> AI ENGINE
             </button>
-            <button onclick="logout()" class="text-[9px] font-bold text-red-400 uppercase">Logout</button>
+            <div class="h-4 w-[1px] bg-gray-700"></div>
+            <button onclick="logout()" class="text-[10px] font-bold text-gray-500 hover:text-red-400 transition-colors">LOGOUT</button>
         </div>
     </header>
 
     <!-- Dashboard -->
-    <main class="p-4 overflow-y-auto" style="height: calc(100vh - 48px);">
-        <div id="view-folders">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Folders</h2>
-                <button onclick="openModal('folder')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">+ FOLDER</button>
+    <main class="p-8 overflow-y-auto" style="height: calc(100vh - 56px);">
+        <div id="view-folders" class="max-w-6xl mx-auto">
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <h2 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">Architecture</h2>
+                    <h1 class="text-3xl font-bold text-white">Project Folders</h1>
+                </div>
+                <button onclick="openModal('folder')" class="bg-blue-600/10 text-blue-400 border border-blue-600/20 px-5 py-2 rounded-xl text-[10px] font-bold hover:bg-blue-600 hover:text-white transition-all">+ NEW FOLDER</button>
             </div>
-            <div id="list-folders" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+            <div id="list-folders" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
         </div>
 
-        <div id="view-files" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <button onclick="showHome()" class="text-xs font-bold text-gray-400">← BACK</button>
-                <button onclick="openModal('file')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">+ FILE</button>
+        <div id="view-files" class="hidden max-w-6xl mx-auto fade-in">
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <button onclick="showHome()" class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2 hover:text-white transition-colors">← BACK TO ROOT</button>
+                    <h1 id="current-folder-title" class="text-3xl font-bold text-white">Assets</h1>
+                </div>
+                <button onclick="openModal('file')" class="bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 px-5 py-2 rounded-xl text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition-all">+ NEW FILE</button>
             </div>
-            <div id="list-files" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+            <div id="list-files" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
         </div>
     </main>
 
     <!-- Editor UI -->
     <div id="editor-ui" class="fixed inset-0 z-[500] bg-[#0d1117] hidden flex-col">
-        <div class="h-12 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4">
-            <div class="flex items-center gap-3">
-                <button onclick="closeEditor()" class="text-[10px] font-bold text-gray-500">EXIT</button>
-                <!-- Search Box -->
-                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Find..." class="bg-[#0d1117] border border-[#30363d] rounded-md px-2 py-1 text-[10px] outline-none focus:border-amber-400 text-amber-100 w-24 sm:w-40">
+        <div class="h-14 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-6">
+            <div class="flex items-center gap-6">
+                <button onclick="closeEditor()" class="group flex items-center gap-2">
+                    <span class="text-gray-500 group-hover:text-white transition-colors">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    </span>
+                    <span class="text-[10px] font-bold text-gray-500 group-hover:text-white transition-colors">EXIT EDITOR</span>
+                </button>
+                <div class="relative">
+                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="Search code..." class="bg-[#0d1117] border border-[#30363d] rounded-xl px-4 py-2 text-[11px] outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 text-amber-100 w-40 sm:w-64 transition-all">
+                </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="runProject()" class="px-3 py-1.5 bg-emerald-600 rounded-md text-[9px] font-bold text-white uppercase">Run</button>
-                <button id="btn-save" onclick="saveFile()" class="px-3 py-1.5 bg-blue-600 rounded-md text-[9px] font-bold text-white uppercase disabled:bg-gray-700 disabled:text-gray-400" disabled>Save</button>
+            <div class="flex gap-3">
+                <button onclick="runProject()" class="px-5 py-2 bg-[#1c2128] border border-[#30363d] hover:border-emerald-500/50 hover:text-emerald-400 rounded-xl text-[10px] font-bold text-gray-400 uppercase transition-all">Run Live</button>
+                <button id="btn-save" onclick="saveFile()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-[10px] font-bold text-white uppercase disabled:bg-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-600/20" disabled>Save Changes</button>
             </div>
         </div>
         <div class="editor-container">
@@ -119,60 +180,77 @@
         </div>
     </div>
 
-    <!-- AI Wizard -->
-    <div id="ai-wizard" class="fixed inset-0 z-[1500] bg-[#0d1117] hidden flex-col items-center justify-center p-6">
-        <!-- Step 0: User Key -->
-        <div id="ai-step-0" class="w-full max-w-[300px] space-y-4">
-            <h2 class="text-xl font-bold text-blue-500 italic text-center uppercase">User API Key</h2>
-            <p class="text-[10px] text-gray-500 text-center">Enter your Google Gemini API Key to enable AI features.</p>
-            <input type="password" id="user-api-key" placeholder="API Key..." class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-xs">
-            <button id="btn-verify-key" onclick="verifyUserKey()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs">VERIFY KEY</button>
-            <p class="text-center"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 underline italic">Get your free key here</a></p>
-            <button onclick="closeAIWizard()" class="w-full text-xs text-gray-500">CANCEL</button>
-        </div>
-
-        <!-- Step 1: Project Info -->
-        <div id="ai-step-1" class="w-full max-w-[300px] space-y-4 hidden">
-            <h2 class="text-xl font-bold text-white italic text-center">PROJECT SETUP</h2>
-            <input type="text" id="ai-folder-name" placeholder="Folder Name" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-            <input type="text" id="ai-file-name" placeholder="File Name (e.g. game.html)" class="w-full bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-            <button onclick="goToAIStep2()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white text-xs">PROCEED</button>
-            <button onclick="backToStep0()" class="w-full text-xs text-gray-500">BACK</button>
-        </div>
-
-        <!-- Step 2: Chat -->
-        <div id="ai-step-2" class="w-full max-w-[400px] space-y-4 hidden flex flex-col h-[85vh]">
-            <div class="bg-[#161b22] border border-[#30363d] rounded-2xl p-4 flex-1 overflow-y-auto space-y-4" id="ai-chat-history">
-                <p class="text-blue-400 text-xs">AI Core: ระบุความต้องการเพื่อสร้างไฟล์ <span id="target-info" class="text-white font-bold underline"></span></p>
+    <!-- Modals (Feature 1) -->
+    <!-- Confirmation Modal -->
+    <div id="confirm-ui" class="fixed inset-0 z-[6000] bg-black/90 hidden items-center justify-center p-6 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-[32px] w-full max-w-[340px] text-center fade-in shadow-2xl">
+            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </div>
-            <div class="flex gap-2">
-                <input type="text" id="ai-prompt" placeholder="สร้างเว็บไซต์..." class="flex-1 bg-[#161b22] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm">
-                <button id="btn-ai-send" onclick="generateWithAI()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+            <h3 class="text-white font-bold text-lg mb-2">Are you sure?</h3>
+            <p id="confirm-msg" class="text-gray-400 text-xs mb-8 leading-relaxed">การกระทำนี้ไม่สามารถย้อนกลับได้ ข้อมูลจะถูกลบถาวรจากฐานข้อมูล</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 bg-[#21262d] text-gray-400 py-3 rounded-2xl font-bold text-[10px] uppercase hover:text-white transition-all">Cancel</button>
+                <button id="confirm-btn-exec" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-2xl font-bold text-[10px] uppercase shadow-lg shadow-red-600/20 transition-all">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Input Modal -->
+    <div id="modal-ui" class="fixed inset-0 z-[3000] bg-black/80 hidden items-center justify-center p-6 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-[32px] w-full max-w-[320px] fade-in shadow-2xl border border-white/10">
+            <p id="modal-title" class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4 text-center"></p>
+            <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-sm mb-6 focus:border-blue-500 transition-all shadow-inner">
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 text-[10px] font-bold text-gray-500 uppercase hover:text-white">Cancel</button>
+                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Create Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Wizard & Preview (Inherited) -->
+    <div id="ai-wizard" class="fixed inset-0 z-[1500] bg-[#0d1117] hidden flex-col items-center justify-center p-6 backdrop-blur-xl">
+        <div id="ai-step-0" class="w-full max-w-[320px] space-y-6 fade-in">
+             <div class="w-20 h-20 bg-amber-400/10 text-amber-400 rounded-[24px] flex items-center justify-center mx-auto rotate-12 mb-2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white text-center italic">AI ACTIVATION</h2>
+            <input type="password" id="user-api-key" placeholder="Enter Gemini API Key" class="w-full bg-[#161b22] border border-[#30363d] p-4 rounded-2xl outline-none text-white text-xs focus:border-amber-400 transition-all shadow-xl">
+            <button id="btn-verify-key" onclick="verifyUserKey()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 py-4 rounded-2xl font-bold text-black text-[10px] uppercase shadow-xl shadow-orange-500/20 active:scale-95 transition-all">Connect Engine</button>
+            <p class="text-center"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-amber-500/60 hover:text-amber-400 underline italic">Get Key from Google AI Studio</a></p>
+            <button onclick="closeAIWizard()" class="w-full text-[10px] text-gray-500 font-bold uppercase tracking-widest">Cancel</button>
+        </div>
+        <!-- Steps 1 & 2 inherit basic logic with glass UI -->
+        <div id="ai-step-1" class="w-full max-w-[320px] space-y-4 hidden fade-in">
+            <h2 class="text-xl font-bold text-white text-center">DEFINE TARGET</h2>
+            <input type="text" id="ai-folder-name" placeholder="Target Folder" class="w-full bg-[#161b22] border border-[#30363d] p-4 rounded-2xl text-white text-sm">
+            <input type="text" id="ai-file-name" placeholder="Filename (e.g. index.html)" class="w-full bg-[#161b22] border border-[#30363d] p-4 rounded-2xl text-white text-sm">
+            <button onclick="goToAIStep2()" class="w-full bg-blue-600 py-4 rounded-2xl font-bold text-white text-[10px] uppercase">Next Step</button>
+        </div>
+        <div id="ai-step-2" class="w-full max-w-[450px] space-y-4 hidden flex flex-col h-[80vh] fade-in">
+            <div class="glass-panel rounded-[32px] p-6 flex-1 overflow-y-auto space-y-4 border border-white/5" id="ai-chat-history"></div>
+            <div class="flex gap-3 bg-[#161b22] p-2 rounded-[24px] border border-[#30363d]">
+                <input type="text" id="ai-prompt" placeholder="Prompt (เช่น: สร้างหน้า Login สวยๆ)" class="flex-1 bg-transparent px-4 py-2 outline-none text-white text-sm">
+                <button id="btn-ai-send" onclick="generateWithAI()" class="bg-blue-600 w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Runner -->
     <div id="preview-ui" class="fixed inset-0 z-[2000] bg-white hidden flex-col">
-        <div class="h-12 bg-gray-900 flex items-center justify-between px-4">
-            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Live Output</span>
-            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1 rounded-full text-[9px] font-black">STOP</button>
-        </div>
-        <iframe id="preview-frame" class="flex-1 w-full border-none bg-white"></iframe>
-    </div>
-
-    <!-- Modal -->
-    <div id="modal-ui" class="fixed inset-0 z-[3000] bg-black/80 hidden items-center justify-center p-6">
-        <div class="bg-[#161b22] border border-[#30363d] p-6 rounded-3xl w-full max-w-[280px]">
-            <p id="modal-title" class="text-[10px] font-bold text-gray-500 uppercase mb-4 text-center"></p>
-            <input type="text" id="modal-input" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl outline-none text-white text-sm mb-4">
-            <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-1 text-xs text-gray-400">CANCEL</button>
-                <button id="modal-confirm" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold text-xs uppercase">Create</button>
+        <div class="h-14 bg-gray-950 flex items-center justify-between px-6">
+            <div class="flex items-center gap-3">
+                <div class="flex gap-1.5">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                </div>
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Live Preview Engine</span>
             </div>
+            <button onclick="closePreview()" class="bg-white text-black px-6 py-1.5 rounded-full text-[10px] font-black hover:bg-gray-200 transition-all">STOP ENGINE</button>
         </div>
+        <iframe id="preview-frame" class="flex-1 w-full border-none"></iframe>
     </div>
 
     <div id="toast" class="toast">NOTIFICATION</div>
@@ -184,54 +262,57 @@
     let session = JSON.parse(localStorage.getItem('ds_session')) || null;
     let curFolder = null, curFile = null, lastSavedCode = "";
 
-    const FOLDER_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none"><path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#54aeff" fill-opacity="0.2" stroke="#54aeff" stroke-width="2"/></svg>`;
-    const FILE_ICON = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" fill="#2f81f7" fill-opacity="0.15" stroke="#2f81f7" stroke-width="2"/><path d="M13 2V9H20" stroke="#2f81f7" stroke-width="2"/></svg>`;
+    const FOLDER_ICON = `<svg class="icon-svg w-12 h-12" viewBox="0 0 24 24" fill="none"><path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#2f81f7" fill-opacity="0.1" stroke="#2f81f7" stroke-width="1.5"/></svg>`;
+    const FILE_ICON = `<svg class="icon-svg w-12 h-12" viewBox="0 0 24 24" fill="none"><path d="M13 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V9L13 2Z" fill="#3fb950" fill-opacity="0.1" stroke="#3fb950" stroke-width="1.5"/><path d="M13 2V9H20" stroke="#3fb950" stroke-width="1.5"/></svg>`;
 
-    // --- Template Logic (Feature 1) ---
+    // --- Template & Search Logic ---
     function getTemplate(filename) {
         const ext = filename.split('.').pop().toLowerCase();
         const templates = {
-            html: '<!DOCTYPE html>\n<html>\n<head>\n  <title>New Page</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>',
-            css: 'body {\n  margin: 0;\n  padding: 0;\n  background: #000;\n}',
-            js: 'console.log("Hello from Javascript!");\n\nfunction init() {\n\n}',
-            py: 'def main():\n    print("Hello from Python!")\n\nif __name__ == "__main__":\n    main()',
-            json: '{\n  "name": "project",\n  "version": "1.0.0"\n}',
-            php: '<?php\n  echo "Hello from PHP";\n?>'
+            html: '<!DOCTYPE html>\n<html>\n<head>\n  <title>New Project</title>\n  <script src="https://cdn.tailwindcss.com"><\/script>\n</head>\n<body class="bg-gray-100 p-10">\n  <h1 class="text-4xl font-bold">Hello World</h1>\n</body>\n</html>',
+            css: '/* Premium Styles */\nbody {\n  margin: 0;\n  background: #f0f0f0;\n  font-family: sans-serif;\n}',
+            js: 'console.log("System Ready...");\n\nfunction init() {\n  // Logic here\n}\n\ninit();',
+            py: 'def main():\n    print("Python running...")\n\nif __name__ == "__main__":\n    main()'
         };
-        return templates[ext] || '// Start coding here...';
+        return templates[ext] || '// Write something brilliant...';
     }
 
-    // --- Search Logic (Feature 3) ---
     function handleSearch() {
         const term = document.getElementById('search-input').value;
         const input = document.getElementById('code-input');
         const backdrop = document.getElementById('backdrop');
         const content = input.value;
-        
-        if (!term) {
-            applyHighlight();
-            return;
-        }
-
+        if (!term) { applyHighlight(); return; }
         const regex = new RegExp(`(${term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
-        const highlighted = content
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-            .replace(regex, '<span class="match">$1</span>');
-        
-        backdrop.innerHTML = highlighted;
-
-        // Find first occurrence and scroll
+        backdrop.innerHTML = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(regex, '<span class="match">$1</span>');
         const index = content.toLowerCase().indexOf(term.toLowerCase());
         if (index !== -1) {
-            const beforeMatch = content.substring(0, index);
-            const lineCount = beforeMatch.split('\n').length;
-            const lineHeight = 22.4; // 14px * 1.6 line-height
-            input.scrollTop = (lineCount - 1) * lineHeight - 50;
-            syncScroll();
+            const lineCount = content.substring(0, index).split('\n').length;
+            input.scrollTop = (lineCount - 1) * 22.4 - 50; syncScroll();
         }
     }
 
-    // --- AI User API Logic ---
+    // --- Delete Confirmation (Feature 1) ---
+    let deleteCallback = null;
+    function deleteItem(e, id, type) {
+        e.stopPropagation();
+        const msg = type === 'folder' ? 'โฟลเดอร์และไฟล์ภายในทั้งหมดจะถูกลบถาวร' : 'ไฟล์นี้จะถูกลบถาวร';
+        document.getElementById('confirm-msg').textContent = msg;
+        document.getElementById('confirm-ui').classList.replace('hidden', 'flex');
+        
+        document.getElementById('confirm-btn-exec').onclick = () => {
+            const u = db.users[session.email];
+            if(type === 'folder') u.folders.splice(id, 1);
+            else u.folders[curFolder].files.splice(id, 1);
+            saveDB();
+            type === 'folder' ? renderFolders() : renderFiles();
+            closeConfirm();
+            notify("Deleted successfully");
+        };
+    }
+    function closeConfirm() { document.getElementById('confirm-ui').classList.replace('flex', 'hidden'); }
+
+    // --- AI & Logic ---
     async function verifyUserKey() {
         const inputKey = document.getElementById('user-api-key').value.trim();
         const btn = document.getElementById('btn-verify-key');
@@ -242,99 +323,53 @@
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: "hi" }] }] })
             });
-            if (!res.ok) throw new Error("Invalid Key");
+            if (!res.ok) throw new Error("Key is invalid");
             userKey = inputKey; localStorage.setItem('user_api_key', inputKey);
-            notify("✅ Key Verified!");
+            notify("✅ Key Connected!");
             document.getElementById('ai-step-0').classList.add('hidden');
             document.getElementById('ai-step-1').classList.remove('hidden');
-        } catch (e) { notify("❌ Error: " + e.message); }
-        finally { btn.disabled = false; btn.textContent = "VERIFY KEY"; }
-    }
-
-    function openAIWizard() {
-        document.getElementById('ai-wizard').classList.replace('hidden', 'flex');
-        if (userKey) {
-            document.getElementById('ai-step-0').classList.add('hidden');
-            document.getElementById('ai-step-1').classList.remove('hidden');
-            document.getElementById('user-api-key').value = userKey;
-        } else {
-            document.getElementById('ai-step-0').classList.remove('hidden');
-            document.getElementById('ai-step-1').classList.add('hidden');
-        }
-    }
-    function backToStep0() { document.getElementById('ai-step-1').classList.add('hidden'); document.getElementById('ai-step-0').classList.remove('hidden'); }
-    function goToAIStep2() {
-        if(!document.getElementById('ai-folder-name').value || !document.getElementById('ai-file-name').value) return notify("กรุณากรอกข้อมูลให้ครบ");
-        document.getElementById('target-info').textContent = document.getElementById('ai-file-name').value;
-        document.getElementById('ai-step-1').classList.add('hidden'); document.getElementById('ai-step-2').classList.remove('hidden');
+        } catch (e) { notify("❌ Connection Failed"); }
+        finally { btn.disabled = false; btn.textContent = "CONNECT ENGINE"; }
     }
 
     async function generateWithAI() {
         const pInput = document.getElementById('ai-prompt');
         const userPrompt = pInput.value;
-        const fileName = document.getElementById('ai-file-name').value;
         const chat = document.getElementById('ai-chat-history');
-        const sendBtn = document.getElementById('btn-ai-send');
         if(!userPrompt) return;
 
         const msg = document.createElement('div');
-        msg.className = "bg-[#0d1117] border border-[#30363d] p-3 rounded-xl text-[10px]";
-        msg.innerHTML = `<p class="text-blue-400 font-bold mb-1 italic">GEN ENGINE</p><p class="text-gray-400"><span class="loader"></span> AI กำลังเขียนโค้ดไฟล์ ${fileName} ด้วย Key ของคุณ...</p>`;
-        chat.appendChild(msg); chat.scrollTop = chat.scrollHeight; sendBtn.disabled = true;
-
-        const systemPrompt = `Generate ONLY valid code for "${fileName}". No backticks. No markdown. Use Tailwind for HTML.`;
+        msg.className = "bg-[#0d1117] border border-white/5 p-4 rounded-2xl text-[11px] fade-in";
+        msg.innerHTML = `<p class="text-blue-400 font-bold mb-1 tracking-widest italic">AI CORE</p><p class="text-gray-400">กำลังประมวลผลคำสั่งด้วยระบบ Flash...</p>`;
+        chat.appendChild(msg); chat.scrollTop = chat.scrollHeight;
 
         try {
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userKey}`, {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: userPrompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
+                body: JSON.stringify({ 
+                    contents: [{ parts: [{ text: userPrompt }] }], 
+                    systemInstruction: { parts: [{ text: `Generate ONLY raw code for "${document.getElementById('ai-file-name').value}". No markdown blocks. No explanations.` }] } 
+                })
             });
-            if(!res.ok) throw new Error("API Limit reached or Invalid Key");
             const data = await res.json();
             let code = data.candidates?.[0]?.content?.parts?.[0]?.text;
             code = code.replace(/^```[a-z]*\n/gi, '').replace(/\n```$/g, '').trim();
 
-            const user = db.users[session.email];
+            const u = db.users[session.email];
             const folderName = document.getElementById('ai-folder-name').value;
-            let fIdx = user.folders.findIndex(f => f.name === folderName);
-            if (fIdx === -1) { user.folders.push({ name: folderName, files: [] }); fIdx = user.folders.length - 1; }
-            user.folders[fIdx].files.push({ name: fileName, content: code });
+            let fIdx = u.folders.findIndex(f => f.name === folderName);
+            if (fIdx === -1) { u.folders.push({ name: folderName, files: [] }); fIdx = u.folders.length - 1; }
+            u.folders[fIdx].files.push({ name: document.getElementById('ai-file-name').value, content: code });
             saveDB();
-
-            msg.innerHTML = `<p class="text-green-400 font-bold italic">SUCCESS</p><p class="text-gray-300">สร้างไฟล์สำเร็จ! ระบบกำลังเปิดหน้าแก้ไข...</p>`;
-            setTimeout(() => {
-                curFolder = fIdx; closeAIWizard(); renderFiles();
-                openEditor(user.folders[fIdx].files.length - 1);
-                sendBtn.disabled = false; pInput.value = "";
-            }, 1200);
-        } catch (e) {
-            msg.innerHTML = `<p class="text-red-500 font-bold italic">ERROR</p><p class="text-gray-500">${e.message}</p>`;
-            sendBtn.disabled = false;
-        }
-    }
-
-    // --- Core logic (Save Feature 2 included) ---
-    function openEditor(id) {
-        curFile = id;
-        const file = db.users[session.email].folders[curFolder].files[id];
-        document.getElementById('code-input').value = file.content;
-        lastSavedCode = file.content;
-        document.getElementById('btn-save').disabled = true; // Feature 2: Start disabled
-        document.getElementById('editor-ui').classList.replace('hidden', 'flex');
-        applyHighlight();
+            
+            msg.innerHTML = `<p class="text-emerald-400 font-bold italic">SUCCESS</p><p class="text-gray-300">โค้ดถูกสร้างและบันทึกในระบบเรียบร้อย</p>`;
+            setTimeout(() => { closeAIWizard(); renderFolders(); openEditor(u.folders[fIdx].files.length - 1); }, 1000);
+        } catch (e) { notify("AI Error: " + e.message); }
     }
 
     function handleInput() {
         const currentCode = document.getElementById('code-input').value;
-        const saveBtn = document.getElementById('btn-save');
-        
-        // Feature 2: Check if code is changed
-        if (currentCode !== lastSavedCode) {
-            saveBtn.disabled = false;
-        } else {
-            saveBtn.disabled = true;
-        }
-        
+        document.getElementById('btn-save').disabled = (currentCode === lastSavedCode);
         applyHighlight();
     }
 
@@ -342,53 +377,70 @@
         const val = document.getElementById('code-input').value;
         db.users[session.email].folders[curFolder].files[curFile].content = val;
         lastSavedCode = val;
-        document.getElementById('btn-save').disabled = true; // Feature 2: Disable after save
-        saveDB(); notify("บันทึกแล้ว!");
+        document.getElementById('btn-save').disabled = true;
+        saveDB(); notify("✅ File Saved");
     }
 
-    function switchAuth(t) { document.getElementById('login-box').classList.toggle('hidden', t !== 'login'); document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg'); }
+    // Boilerplate logics
+    function startSession(u) { session = u; localStorage.setItem('ds_session', JSON.stringify(u)); document.getElementById('auth-ui').style.display = 'none'; renderFolders(); }
+    function logout() { localStorage.removeItem('ds_session'); location.reload(); }
     function handleAuth(type) {
         if(type === 'reg') {
             const e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, n = document.getElementById('r-name').value;
-            if(!e || !p) return notify("กรอกข้อมูลไม่ครบ");
+            if(!e || !p) return notify("กรุณากรอกข้อมูล");
             db.users[e] = { name: n, email: e, pass: p, folders: [] }; saveDB(); startSession(db.users[e]);
         } else {
             const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
             const u = db.users[e]; if(u && u.pass === p) startSession(u); else notify("อีเมลหรือรหัสผ่านผิด");
         }
     }
-    function startSession(u) { session = u; localStorage.setItem('ds_session', JSON.stringify(u)); document.getElementById('auth-ui').style.display = 'none'; renderFolders(); }
-    function logout() { localStorage.removeItem('ds_session'); location.reload(); }
-    function renderFolders() { const list = document.getElementById('list-folders'); list.innerHTML = ''; db.users[session.email].folders.forEach((f, i) => list.appendChild(createItem(i, f.name, 'folder'))); }
-    function renderFiles() { const list = document.getElementById('list-files'); list.innerHTML = ''; db.users[session.email].folders[curFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file'))); }
+    function renderFolders() { 
+        const list = document.getElementById('list-folders'); list.innerHTML = ''; 
+        db.users[session.email].folders.forEach((f, i) => list.appendChild(createItem(i, f.name, 'folder'))); 
+    }
+    function renderFiles() { 
+        const list = document.getElementById('list-files'); list.innerHTML = ''; 
+        document.getElementById('current-folder-title').textContent = db.users[session.email].folders[curFolder].name;
+        db.users[session.email].folders[curFolder].files.forEach((f, i) => list.appendChild(createItem(i, f.name, 'file'))); 
+    }
     function createItem(id, name, type) {
-        const el = document.createElement('div'); el.className = "item-card";
+        const el = document.createElement('div'); el.className = "item-card fade-in";
         el.innerHTML = `<div class="btn-del" onclick="deleteItem(event, ${id}, '${type}')">✕</div>${type==='folder'?FOLDER_ICON:FILE_ICON}<div class="item-name">${name}</div>`;
         el.onclick = () => { if(type === 'folder') { curFolder = id; document.getElementById('view-folders').classList.add('hidden'); document.getElementById('view-files').classList.remove('hidden'); renderFiles(); } else openEditor(id); };
         return el;
     }
-    function deleteItem(e, id, type) { e.stopPropagation(); const u = db.users[session.email]; if(type === 'folder') u.folders.splice(id, 1); else u.folders[curFolder].files.splice(id, 1); saveDB(); type === 'folder' ? renderFolders() : renderFiles(); }
-    function runProject() { const code = document.getElementById('code-input').value; const blob = new Blob([code], {type: 'text/html'}); document.getElementById('preview-frame').src = URL.createObjectURL(blob); document.getElementById('preview-ui').classList.replace('hidden', 'flex'); }
-    function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
+    function openEditor(id) {
+        curFile = id; const file = db.users[session.email].folders[curFolder].files[id];
+        document.getElementById('code-input').value = file.content;
+        lastSavedCode = file.content;
+        document.getElementById('btn-save').disabled = true;
+        document.getElementById('editor-ui').classList.replace('hidden', 'flex');
+        applyHighlight();
+    }
+    function openAIWizard() { document.getElementById('ai-wizard').classList.replace('hidden', 'flex'); }
+    function closeAIWizard() { document.getElementById('ai-wizard').classList.replace('flex', 'hidden'); }
+    function goToAIStep2() { document.getElementById('ai-step-1').classList.add('hidden'); document.getElementById('ai-step-2').classList.remove('hidden'); }
     function closeEditor() { document.getElementById('editor-ui').classList.replace('flex', 'hidden'); }
     function showHome() { document.getElementById('view-folders').classList.remove('hidden'); document.getElementById('view-files').classList.add('hidden'); renderFolders(); }
-    function closeAIWizard() { document.getElementById('ai-wizard').classList.replace('flex', 'hidden'); }
-    function applyHighlight() { document.getElementById('backdrop').textContent = document.getElementById('code-input').value; }
-    function syncScroll() { document.getElementById('backdrop').scrollTop = document.getElementById('code-input').scrollTop; document.getElementById('backdrop').scrollLeft = document.getElementById('code-input').scrollLeft; }
+    function runProject() { const code = document.getElementById('code-input').value; const blob = new Blob([code], {type: 'text/html'}); document.getElementById('preview-frame').src = URL.createObjectURL(blob); document.getElementById('preview-ui').classList.replace('hidden', 'flex'); }
+    function closePreview() { document.getElementById('preview-ui').classList.replace('flex', 'hidden'); }
     function openModal(type) {
-        document.getElementById('modal-title').textContent = `สร้าง ${type} ใหม่`;
+        document.getElementById('modal-title').textContent = `New ${type}`;
         document.getElementById('modal-ui').classList.replace('hidden', 'flex');
         document.getElementById('modal-confirm').onclick = () => {
             const val = document.getElementById('modal-input').value; if(!val) return;
             const u = db.users[session.email];
             if(type === 'folder') u.folders.push({ name: val, files: [] });
-            else u.folders[curFolder].files.push({ name: val, content: getTemplate(val) }); // Feature 1: Use Template
+            else u.folders[curFolder].files.push({ name: val, content: getTemplate(val) });
             saveDB(); type === 'folder' ? renderFolders() : renderFiles(); closeModal();
         };
     }
     function closeModal() { document.getElementById('modal-ui').classList.replace('flex', 'hidden'); }
+    function applyHighlight() { document.getElementById('backdrop').textContent = document.getElementById('code-input').value; }
+    function syncScroll() { document.getElementById('backdrop').scrollTop = document.getElementById('code-input').scrollTop; document.getElementById('backdrop').scrollLeft = document.getElementById('code-input').scrollLeft; }
     function notify(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
     function saveDB() { localStorage.setItem(KEY, JSON.stringify(db)); }
+    function switchAuth(t) { document.getElementById('login-box').classList.toggle('hidden', t !== 'login'); document.getElementById('reg-box').classList.toggle('hidden', t !== 'reg'); }
     if(session) startSession(session);
 </script>
 </body>
