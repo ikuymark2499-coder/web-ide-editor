@@ -2,230 +2,189 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DevStudio Gold - AI Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
-        :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --blue: #2f81f7; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #c9d1d9; margin: 0; height: 100vh; display: flex; flex-direction: column; }
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0d1117; color: #c9d1d9; }
         .code-font { font-family: 'Fira Code', monospace; }
-        .loader { width: 18px; height: 18px; border: 2px solid #2f81f7; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #ai-output-log::-webkit-scrollbar { width: 4px; }
-        #ai-output-log::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+        .editor-container { height: calc(100vh - 120px); }
+        .loader {
+            width: 24px; height: 24px; border: 3px solid #3b82f6;
+            border-bottom-color: transparent; border-radius: 50%;
+            display: inline-block; animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- Top Bar -->
-    <header class="h-14 border-b border-[#30363d] bg-[#161b22] flex items-center justify-between px-6 shrink-0">
+    <!-- Header -->
+    <header class="h-14 border-b border-[#30363d] bg-[#161b22] flex items-center justify-between px-6">
         <div class="flex items-center gap-2">
-            <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center font-bold text-white italic">G</div>
-            <span class="font-black text-sm tracking-tighter italic">DEVSTUDIO <span class="text-blue-500">GOLD</span></span>
+            <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-white italic">G</div>
+            <span class="font-bold text-white">DEVSTUDIO <span class="text-blue-500 font-black">GOLD</span></span>
         </div>
         <div class="flex gap-2">
-            <button onclick="toggleAI()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-2">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                AI GEN ENGINE
+            <button id="run-btn" onclick="runCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all">
+                ▶ RUN PREVIEW
             </button>
         </div>
     </header>
 
-    <!-- Content Area -->
+    <!-- Main Content -->
     <main class="flex-1 flex overflow-hidden">
         <!-- Sidebar -->
-        <aside class="w-60 border-r border-[#30363d] p-4 hidden md:block overflow-y-auto">
-            <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Files</h2>
+        <aside class="w-64 border-r border-[#30363d] p-4 hidden md:block">
+            <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Project Files</h3>
             <div id="file-list" class="space-y-1"></div>
         </aside>
 
         <!-- Editor -->
-        <div class="flex-1 flex flex-col bg-[#0d1117] relative">
-            <div class="h-9 border-b border-[#30363d] flex items-center px-4 bg-[#161b22]">
-                <span id="file-name-display" class="text-[10px] text-gray-500 italic">No file selected</span>
-                <div class="ml-auto flex gap-4">
-                    <button onclick="runProject()" class="text-emerald-500 hover:text-emerald-400 text-[10px] font-bold uppercase">Run Preview</button>
-                </div>
+        <div class="flex-1 flex flex-col relative">
+            <div class="h-8 bg-[#0d1117] flex items-center px-4 border-b border-[#30363d]">
+                <span id="active-filename" class="text-[10px] text-blue-400 font-bold italic">No file selected</span>
             </div>
-            <textarea id="editor" class="flex-1 p-6 bg-transparent text-white code-font text-sm outline-none resize-none" spellcheck="false" placeholder="// Select a file or use AI to generate..."></textarea>
+            <textarea id="editor" class="flex-1 p-6 bg-transparent text-white code-font text-sm outline-none resize-none" spellcheck="false" placeholder="// Describe your project in the AI Chat below..."></textarea>
         </div>
     </main>
 
-    <!-- AI Overlay -->
-    <div id="ai-panel" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-[#161b22] border border-[#30363d] w-full max-w-xl rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[80vh]">
-            <div class="p-4 bg-[#0d1117] border-b border-[#30363d] flex justify-between items-center">
-                <span class="text-blue-400 font-bold text-sm">AI SYSTEM CORE</span>
-                <button onclick="toggleAI()" class="text-gray-500 hover:text-white">✕</button>
-            </div>
-            
-            <div id="ai-output-log" class="flex-1 p-6 space-y-4 overflow-y-auto text-xs bg-[#0d1117]/30">
-                <div class="text-blue-300 border-l-2 border-blue-600 pl-3 py-1">
-                    ยินดีต้อนรับครับ ระบุชื่อไฟล์และรายละเอียดเพื่อเริ่มสร้างโปรเจค
+    <!-- AI Chat Console (Sticky Bottom) -->
+    <div class="bg-[#161b22] border-t border-[#30363d] p-4 shadow-2xl">
+        <div class="max-w-4xl mx-auto flex gap-3">
+            <div class="flex-1 relative">
+                <input type="text" id="ai-prompt" placeholder="เช่น 'สร้างหน้าเว็บ Portfolio สวยๆ มีแอนิเมชั่นเล็กน้อย'..." 
+                    class="w-full bg-[#0d1117] border border-[#30363d] p-3 pl-4 rounded-xl text-sm outline-none focus:border-blue-500 transition-all text-white">
+                <div id="ai-status" class="absolute right-3 top-3 hidden">
+                    <span class="loader"></span>
                 </div>
             </div>
-
-            <div class="p-6 border-t border-[#30363d] space-y-4">
-                <input type="text" id="ai-filename" placeholder="ชื่อไฟล์ (เช่น index.html)" class="w-full bg-[#0d1117] border border-[#30363d] p-3 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
-                <div class="flex gap-2">
-                    <textarea id="ai-input" rows="3" placeholder="อธิบายสิ่งที่คุณต้องการสร้างอย่างละเอียด..." class="flex-1 bg-[#0d1117] border border-[#30363d] p-3 rounded-xl text-sm outline-none focus:border-blue-500 transition-all resize-none"></textarea>
-                    <button id="gen-btn" onclick="startGeneration()" class="bg-blue-600 hover:bg-blue-500 text-white w-16 rounded-xl font-bold flex items-center justify-center">GEN</button>
-                </div>
-            </div>
+            <button id="gen-btn" onclick="generateCode()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-900/20">
+                GENERATE
+            </button>
         </div>
     </div>
 
-    <!-- Live Preview -->
-    <div id="preview-box" class="fixed inset-0 z-[200] bg-white hidden flex-col">
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 bg-white z-[1000] hidden flex-col">
         <div class="h-12 bg-gray-900 flex items-center justify-between px-6">
-            <span class="text-xs font-bold text-gray-400">PREVIEW OUTPUT</span>
-            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1 rounded text-[10px] font-bold">CLOSE</button>
+            <span class="text-xs font-bold text-gray-400">LIVE PREVIEW</span>
+            <button onclick="closePreview()" class="bg-red-500 text-white px-4 py-1 rounded-full text-[10px] font-bold">EXIT</button>
         </div>
         <iframe id="preview-frame" class="w-full flex-1 border-none"></iframe>
     </div>
 
     <script>
-        // API Key Handling
-        const apiKey = ""; // ปล่อยว่างไว้ ระบบจะแทรก Key ให้เองอัตโนมัติขณะรัน
+        const apiKey = ""; // 
+        let currentCode = "";
+        let files = JSON.parse(localStorage.getItem('devstudio_files')) || [];
 
-        let db = JSON.parse(localStorage.getItem('ds_gold_v2')) || [];
-        let activeIdx = null;
+        // --- AI LOGIC ---
+        async function generateCode() {
+            const prompt = document.getElementById('ai-prompt').value.trim();
+            const genBtn = document.getElementById('gen-btn');
+            const statusIcon = document.getElementById('ai-status');
 
-        function toggleAI() {
-            const el = document.getElementById('ai-panel');
-            el.classList.toggle('hidden');
-            el.classList.toggle('flex');
-        }
+            if (!prompt) return;
 
-        function log(msg, type = 'info') {
-            const container = document.getElementById('ai-output-log');
-            const div = document.createElement('div');
-            div.className = type === 'error' ? 'text-red-400 border-l-2 border-red-600 pl-3 py-1' : 'text-gray-300 border-l-2 border-gray-600 pl-3 py-1';
-            div.innerHTML = msg;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
+            genBtn.disabled = true;
+            statusIcon.classList.remove('hidden');
+            genBtn.textContent = "AI WORKING...";
 
-        async function startGeneration() {
-            const prompt = document.getElementById('ai-input').value.trim();
-            const filename = document.getElementById('ai-filename').value.trim();
-            const btn = document.getElementById('gen-btn');
-
-            if (!prompt || !filename) return alert("กรุณาระบุข้อมูลให้ครบ");
-
-            btn.disabled = true;
-            log(`<span class="loader align-middle mr-2"></span> กำลังสร้างโค้ดสำหรับ ${filename}...`);
-
-            // System Instructions
-            const systemPrompt = `Return ONLY raw source code for "${filename}". No markdown. No conversational text. If HTML, use Tailwind CSS. Ensure it works on mobile.`;
-
-            // Retry Mechanism
-            async function fetchAI(retryCount = 5, delay = 1000) {
-                try {
-                    // ใช้ URL มาตรฐานที่ระบบอนุญาต
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            systemInstruction: { parts: [{ text: systemPrompt }] }
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errData = await response.json();
-                        throw new Error(errData.error?.message || `HTTP ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    return result.candidates?.[0]?.content?.parts?.[0]?.text;
-                } catch (err) {
-                    if (retryCount > 0) {
-                        await new Promise(r => setTimeout(r, delay));
-                        return fetchAI(retryCount - 1, delay * 2);
-                    }
-                    throw err;
-                }
-            }
+            const systemInstruction = `You are a professional full-stack web developer. 
+            Instruction: Generate a single file HTML/CSS/JS code based on user prompt.
+            Format: Return ONLY the code. Do not use markdown backticks (\`\`\`html). 
+            Style: Modern, mobile-responsive, use Tailwind CSS CDN for styling.`;
 
             try {
-                let code = await fetchAI();
-                if (!code) throw new Error("ไม่ได้รับข้อมูลจาก AI");
+                // THE STABLE CALL METHOD FOR THIS ENVIRONMENT
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
 
-                // Clean Code
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || "Connection failed");
+                }
+
+                const data = await response.json();
+                let code = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!code) throw new Error("AI returned empty result");
+
+                // Clean the code output
                 code = code.replace(/^```[a-z]*\n/gi, '').replace(/\n```$/g, '').trim();
 
-                const newFile = { name: filename, content: code, id: Date.now() };
-                db.push(newFile);
-                localStorage.setItem('ds_gold_v2', JSON.stringify(db));
+                // Update UI
+                document.getElementById('editor').value = code;
+                document.getElementById('active-filename').textContent = "generated_index.html";
+                
+                // Save to local storage
+                const newFile = { id: Date.now(), name: "App_" + Date.now() + ".html", content: code };
+                files.unshift(newFile);
+                localStorage.setItem('devstudio_files', JSON.stringify(files));
                 
                 renderFiles();
-                openFile(db.length - 1);
-                
-                log(`<span class="text-green-400 font-bold">สำเร็จ!</span> เปิดไฟล์ ${filename} เรียบร้อยแล้ว`, 'success');
-                setTimeout(toggleAI, 1500);
+                alert("✨ สร้างโค้ดสำเร็จ! คุณสามารถกด RUN เพื่อดูผลลัพธ์ได้ทันที");
+
             } catch (err) {
-                log(`❌ ผิดพลาด: ${err.message}. กรุณาลองกด GEN อีกครั้ง`, 'error');
+                console.error(err);
+                alert("❌ การเชื่อมต่อล้มเหลว: " + err.message + "\n\nคำแนะนำ: ระบบอาจกำลังป้องกันการเข้าถึง API แนะนำให้ตรวจสอบว่าคุณได้กดรันในโหมด Preview ของแพลตฟอร์มนี้");
             } finally {
-                btn.disabled = false;
+                genBtn.disabled = false;
+                statusIcon.classList.add('hidden');
+                genBtn.textContent = "GENERATE";
+                document.getElementById('ai-prompt').value = "";
             }
         }
 
+        // --- UTILS ---
         function renderFiles() {
             const list = document.getElementById('file-list');
             list.innerHTML = '';
-            db.forEach((file, i) => {
+            files.forEach(file => {
                 const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-2 rounded hover:bg-[#1c2128] cursor-pointer group";
-                item.innerHTML = `
-                    <div class="flex items-center gap-2 overflow-hidden" onclick="openFile(${i})">
-                        <svg width="12" height="12" fill="#58a6ff" viewBox="0 0 24 24"><path d="M13 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9l-7-7z"/></svg>
-                        <span class="text-[11px] truncate">${file.name}</span>
-                    </div>
-                    <button onclick="deleteFile(${i})" class="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
-                `;
+                item.className = "flex items-center justify-between p-2 rounded hover:bg-[#1c2128] cursor-pointer text-xs";
+                item.innerHTML = `<span onclick="loadFile(${file.id})">📄 ${file.name}</span> <button onclick="deleteFile(${file.id})" class="text-gray-600 hover:text-red-500">✕</button>`;
                 list.appendChild(item);
             });
         }
 
-        function openFile(i) {
-            activeIdx = i;
-            document.getElementById('file-name-display').textContent = db[i].name;
-            document.getElementById('editor').value = db[i].content;
+        function loadFile(id) {
+            const file = files.find(f => f.id === id);
+            if (file) {
+                document.getElementById('editor').value = file.content;
+                document.getElementById('active-filename').textContent = file.name;
+            }
         }
 
-        function deleteFile(i) {
-            db.splice(i, 1);
-            localStorage.setItem('ds_gold_v2', JSON.stringify(db));
-            if (activeIdx === i) {
-                activeIdx = null;
-                document.getElementById('editor').value = '';
-                document.getElementById('file-name-display').textContent = 'No file selected';
-            }
+        function deleteFile(id) {
+            files = files.filter(f => f.id !== id);
+            localStorage.setItem('devstudio_files', JSON.stringify(files));
             renderFiles();
         }
 
-        function runProject() {
+        function runCode() {
             const code = document.getElementById('editor').value;
-            if (!code) return;
+            if (!code) return alert("ยังไม่มีโค้ดให้รันครับ");
+            
+            const frame = document.getElementById('preview-frame');
             const blob = new Blob([code], { type: 'text/html' });
-            document.getElementById('preview-frame').src = URL.createObjectURL(blob);
-            document.getElementById('preview-box').classList.replace('hidden', 'flex');
+            frame.src = URL.createObjectURL(blob);
+            document.getElementById('preview-modal').classList.replace('hidden', 'flex');
         }
 
         function closePreview() {
-            document.getElementById('preview-box').classList.replace('flex', 'hidden');
+            document.getElementById('preview-modal').classList.replace('flex', 'hidden');
         }
 
-        // Autosave
-        document.getElementById('editor').addEventListener('input', (e) => {
-            if (activeIdx !== null) {
-                db[activeIdx].content = e.target.value;
-                localStorage.setItem('ds_gold_v2', JSON.stringify(db));
-            }
-        });
-
+        // Initial Load
         renderFiles();
     </script>
 </body>
